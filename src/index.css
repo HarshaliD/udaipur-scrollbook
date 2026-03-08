@@ -172,19 +172,18 @@
 /* Lotus zoom-in animation */
 @keyframes lotus-appear {
   0% { transform: translateX(-50%) scale(0); opacity: 0; }
-  50% { transform: translateX(-50%) scale(1.15); opacity: 1; }
-  75% { transform: translateX(-50%) scale(0.95); opacity: 1; }
-  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+  100% { transform: translateX(-50%) scale(2.3); opacity: 1; }
 }
 
 .lotus-animation {
   position: absolute;
   bottom: 4%;
   left: 50%;
-  width: 33%;
+  width: 93%;
   height: auto;
   transform: translateX(-50%) scale(0);
+  opacity: 0;
   pointer-events: none;
   z-index: 20;
-  animation: lotus-appear 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation: lotus-appear 0.9s ease-out forwards;
 }

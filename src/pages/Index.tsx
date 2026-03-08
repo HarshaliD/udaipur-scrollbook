@@ -170,11 +170,6 @@ export default function Index() {
         setBoatSailingId(id);
         setTimeout(() => setBoatSailingId(null), 4500);
       }
-      // Lotus animation for jagdish-temple
-      if (id === "jagdish-temple") {
-        setLotusId(id);
-        setTimeout(() => setLotusId(null), 3000);
-      }
       // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
