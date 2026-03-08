@@ -154,7 +154,13 @@
 
 .boat-sailing {
   position: absolute;
-  animation: boat-sail 4s ease-in-out forwards;
+  top: 65%;
+  left: -500px;
+  width: 400px;
+  height: auto;
+  transform: translateY(-50%);
+  pointer-events: none;
+  animation: boat-sail 6s linear forwards, boat-bob 2s ease-in-out infinite;
 }
 
 /* Boat bobbing */
