@@ -215,9 +215,10 @@ export default function Index() {
       <div className="relative max-w-4xl mx-auto px-4 pb-32">
         {/* SVG Path — center vertical line */}
         <svg
-          className="absolute left-1/2 top-0 -translate-x-1/2 h-full w-8 pointer-events-none z-0 hidden md:block"
+          className="absolute left-1/2 top-0 -translate-x-1/2 h-full pointer-events-none z-0 hidden md:block"
+          style={{ width: "80px" }}
           preserveAspectRatio="none"
-          viewBox={`0 0 32 ${pathTotalLength}`}
+          viewBox={`-24 0 80 ${pathTotalLength}`}
         >
           {/* Background dashed path */}
           <line
