@@ -116,6 +116,15 @@ export default function Index() {
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [puppetFrame, setPuppetFrame] = useState(0);
+
+  // Animate puppet frames
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPuppetFrame((prev) => (prev + 1) % PUPPET_FRAMES.length);
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
 
   const allVisited = LOCATIONS.every((loc) => memories[loc.id]?.visited);
 
