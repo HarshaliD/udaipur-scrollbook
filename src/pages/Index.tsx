@@ -240,14 +240,16 @@ export default function Index() {
             strokeDashoffset={pathTotalLength - pathDrawn}
             style={{ transition: "stroke-dashoffset 0.1s linear" }}
           />
-          {/* Traveler dot */}
-          <circle
-            cx="16"
-            cy={Math.min(pathDrawn, pathTotalLength)}
-            r="6"
-            fill="hsl(20, 76%, 60%)"
-            style={{ transition: "cy 0.1s linear" }}
-          />
+          {/* Traveler dot replaced by puppet */}
+          <foreignObject
+            x={-14}
+            y={Math.min(pathDrawn, pathTotalLength) - 40}
+            width="60"
+            height="80"
+            style={{ transition: "y 0.1s linear", overflow: "visible" }}
+          >
+            <TravelerPuppet isMoving={isPuppetDancing} />
+          </foreignObject>
         </svg>
 
         {/* Location sections */}
