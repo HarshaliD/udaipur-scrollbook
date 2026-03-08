@@ -118,20 +118,12 @@ export default function Index() {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [puppetFrame, setPuppetFrame] = useState(0);
 
-  // Scroll-based puppet frame animation
+  // Animate puppet frames
   useEffect(() => {
-    const handlePuppetScroll = () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const progress = docHeight > 0 ? scrollTop / docHeight : 0;
-      const frameIndex = Math.min(
-        Math.floor(progress * PUPPET_FRAMES.length),
-        PUPPET_FRAMES.length - 1
-      );
-      setPuppetFrame(frameIndex);
-    };
-    window.addEventListener("scroll", handlePuppetScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handlePuppetScroll);
+    const interval = setInterval(() => {
+      setPuppetFrame((prev) => (prev + 1) % PUPPET_FRAMES.length);
+    }, 400);
+    return () => clearInterval(interval);
   }, []);
 
   const allVisited = LOCATIONS.every((loc) => memories[loc.id]?.visited);
