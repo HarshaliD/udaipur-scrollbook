@@ -316,8 +316,8 @@ export default function Index() {
                     )}
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
-                  {/* Boat animation (not for jagdish-temple) */}
-                  {boatSailingId === loc.id && loc.id !== "jagdish-temple" && (
+                  {/* Boat animation (only for city-palace) */}
+                  {boatSailingId === loc.id && loc.id === "city-palace" && (
                     <img
                       src={boatImg}
                       alt="Boat"
