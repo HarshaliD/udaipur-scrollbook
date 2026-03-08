@@ -296,7 +296,24 @@ export default function Index() {
                       transition: "filter 1.2s ease",
                     }}
                   >
-                    <img src={loc.image} alt={loc.name} className="w-full h-auto" />
+                    {loc.id === "monsoon-palace" ? (
+                      <div className="relative w-full">
+                        <img
+                          src={monsoonPalaceImg}
+                          alt={loc.name}
+                          className="w-full h-auto block"
+                          style={{ opacity: mem.visited ? 0 : 1, transition: "opacity 0.8s ease" }}
+                        />
+                        <img
+                          src={monsoonPalaceWindowImg}
+                          alt={`${loc.name} - Window View`}
+                          className="w-full h-auto absolute top-0 left-0"
+                          style={{ opacity: mem.visited ? 1 : 0, transition: "opacity 0.8s ease" }}
+                        />
+                      </div>
+                    ) : (
+                      <img src={loc.image} alt={loc.name} className="w-full h-auto" />
+                    )}
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
                   {/* Boat animation (not for jagdish-temple) */}
