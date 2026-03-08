@@ -266,8 +266,8 @@ export default function Index() {
               className={`fade-up ${isVisible ? "visible" : ""} relative mb-24 md:mb-32`}
             >
               {/* Node circle — centered on desktop */}
-              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full border-2 border-warm-orange bg-background items-center justify-center z-10 font-handwritten text-lg text-warm-orange font-bold shadow">
-                {idx + 1}
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-0 w-12 h-14 items-center justify-center z-10" style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))" }}>
+                <img src={PUPPET_FRAMES[idx % PUPPET_FRAMES.length]} alt="Location puppet" className="w-full h-full object-contain" />
               </div>
 
               {/* Content card */}
