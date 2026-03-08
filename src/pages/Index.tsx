@@ -6,6 +6,11 @@ import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
+import puppet1 from "@/assets/puppet1.svg";
+import puppet2 from "@/assets/puppet2.svg";
+import puppet3 from "@/assets/puppet3.svg";
+
+const PUPPET_FRAMES = [puppet1, puppet2, puppet3];
 
 interface LocationData {
   id: string;
@@ -111,6 +116,15 @@ export default function Index() {
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [puppetFrame, setPuppetFrame] = useState(0);
+
+  // Animate puppet frames
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPuppetFrame((prev) => (prev + 1) % PUPPET_FRAMES.length);
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
 
   const allVisited = LOCATIONS.every((loc) => memories[loc.id]?.visited);
 
@@ -226,14 +240,16 @@ export default function Index() {
             strokeDashoffset={pathTotalLength - pathDrawn}
             style={{ transition: "stroke-dashoffset 0.1s linear" }}
           />
-          {/* Traveler dot */}
-          <circle
-            cx="16"
-            cy={Math.min(pathDrawn, pathTotalLength)}
-            r="6"
-            fill="hsl(20, 76%, 60%)"
-            style={{ transition: "cy 0.1s linear" }}
-          />
+          {/* Traveler puppet */}
+          <foreignObject
+            x="-10"
+            y={Math.min(pathDrawn, pathTotalLength) - 30}
+            width="52"
+            height="60"
+            style={{ transition: "y 0.1s linear" }}
+          >
+            <img src={PUPPET_FRAMES[puppetFrame]} alt="Traveler puppet" className="w-full h-full object-contain" style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))" }} />
+          </foreignObject>
         </svg>
 
         {/* Location sections */}
@@ -250,8 +266,8 @@ export default function Index() {
               className={`fade-up ${isVisible ? "visible" : ""} relative mb-24 md:mb-32`}
             >
               {/* Node circle — centered on desktop */}
-              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full border-2 border-warm-orange bg-background items-center justify-center z-10 font-handwritten text-lg text-warm-orange font-bold shadow">
-                {idx + 1}
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-0 w-12 h-14 items-center justify-center z-10" style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.15))" }}>
+                <img src={PUPPET_FRAMES[idx % PUPPET_FRAMES.length]} alt="Location puppet" className="w-full h-full object-contain" />
               </div>
 
               {/* Content card */}
@@ -260,8 +276,8 @@ export default function Index() {
               >
                 {/* Day badge + Mobile number */}
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="md:hidden w-8 h-8 rounded-full border-2 border-warm-orange bg-background flex items-center justify-center font-handwritten text-warm-orange font-bold text-sm">
-                    {idx + 1}
+                  <span className="md:hidden w-10 h-12 flex items-center justify-center">
+                    <img src={PUPPET_FRAMES[idx % PUPPET_FRAMES.length]} alt="puppet" className="w-full h-full object-contain" />
                   </span>
                   <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-accent text-accent-foreground">
                     Day {loc.day}
