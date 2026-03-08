@@ -178,7 +178,7 @@
 
 .lotus-animation {
   position: absolute;
-  bottom: 2%;
+  top: 4%;
   left: 50%;
   width: 96%;
   height: auto;
@@ -190,7 +190,7 @@
 
 .lotus-static {
   position: absolute;
-  bottom: 2%;
+  top: 4%;
   left: 50%;
   width: 96%;
   height: auto;
