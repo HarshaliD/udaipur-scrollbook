@@ -304,12 +304,20 @@ export default function Index() {
                     <img src={loc.image} alt={loc.name} className="w-full h-auto" />
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
-                  {/* Boat animation */}
-                  {boatSailingId === loc.id && (
+                  {/* Boat animation (not for jagdish-temple) */}
+                  {boatSailingId === loc.id && loc.id !== "jagdish-temple" && (
                     <img
                       src={boatImg}
                       alt="Boat"
                       className="boat-sailing z-20"
+                    />
+                  )}
+                  {/* Lotus animation for jagdish-temple */}
+                  {lotusId === loc.id && (
+                    <img
+                      src={lotusImg}
+                      alt="Lotus"
+                      className="lotus-animation"
                     />
                   )}
                 </div>
