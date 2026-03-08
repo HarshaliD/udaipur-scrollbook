@@ -109,6 +109,7 @@ export default function Index() {
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isDancing, setIsDancing] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
