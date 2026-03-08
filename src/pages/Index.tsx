@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import cityPalaceImg from "@/assets/city-palace.svg";
 import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
+import monsoonPalaceWindowImg from "@/assets/monsoon-palace-window.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
 import boatImg from "@/assets/boat.svg";
@@ -287,7 +288,7 @@ export default function Index() {
                     style={{
                       transform: `rotate(${isLeft ? -2 : 2}deg)`,
                       maxWidth: 340,
-                      filter: (loc.id === "city-palace" || loc.id === "jagdish-temple")
+                    filter: (loc.id === "city-palace" || loc.id === "jagdish-temple" || loc.id === "monsoon-palace")
                         ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
                         : mem.visited
                           ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
@@ -295,7 +296,24 @@ export default function Index() {
                       transition: "filter 1.2s ease",
                     }}
                   >
-                    <img src={loc.image} alt={loc.name} className="w-full h-auto" />
+                    {loc.id === "monsoon-palace" ? (
+                      <div className="relative w-full">
+                        <img
+                          src={monsoonPalaceImg}
+                          alt={loc.name}
+                          className="w-full h-auto block"
+                          style={{ opacity: mem.visited ? 0 : 1, transition: "opacity 0.8s ease" }}
+                        />
+                        <img
+                          src={monsoonPalaceWindowImg}
+                          alt={`${loc.name} - Window View`}
+                          className="w-full h-auto absolute top-0 left-0"
+                          style={{ opacity: mem.visited ? 1 : 0, transition: "opacity 0.8s ease" }}
+                        />
+                      </div>
+                    ) : (
+                      <img src={loc.image} alt={loc.name} className="w-full h-auto" />
+                    )}
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
                   {/* Boat animation (not for jagdish-temple) */}
