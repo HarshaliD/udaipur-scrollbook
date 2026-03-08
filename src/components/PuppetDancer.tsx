@@ -28,7 +28,6 @@ export default function PuppetDancer() {
       setScrollProgress(progress);
 
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
       if (!intervalRef.current) {
         intervalRef.current = setInterval(() => {
           setFrameIndex((prev) => (prev + 1) % frames.length);
@@ -37,7 +36,6 @@ export default function PuppetDancer() {
       if (!jiggleRef.current) {
         jiggleRef.current = setInterval(randomTransform, 200);
       }
-
       timeoutRef.current = setTimeout(() => {
         if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
         if (jiggleRef.current) { clearInterval(jiggleRef.current); jiggleRef.current = null; }
@@ -54,53 +52,43 @@ export default function PuppetDancer() {
     };
   }, []);
 
-  // Transition zones: 0–0.08 = big→small, 0.08–0.92 = small, 0.92–1 = small→big
-  const isIntro = scrollProgress < 0.08;
-  const isOutro = scrollProgress > 0.92;
-  const isBig = isIntro || isOutro;
+  // 0–0.15 = shrink from huge to small, 0.85–1 = grow back
+  const introZone = 0.15;
+  const outroStart = 0.85;
 
-  let sizeProgress: number; // 0 = full big, 1 = small
-  if (isIntro) {
-    sizeProgress = scrollProgress / 0.08;
-  } else if (isOutro) {
-    sizeProgress = (1 - scrollProgress) / 0.08;
+  let t: number; // 0 = fully big, 1 = fully small
+  if (scrollProgress < introZone) {
+    t = scrollProgress / introZone;
+  } else if (scrollProgress > outroStart) {
+    t = (1 - scrollProgress) / (1 - outroStart);
   } else {
-    sizeProgress = 1;
+    t = 1;
   }
 
-  // Interpolate: big = 90vh, small = 160px
-  const bigSize = 80; // vh
-  const smallSize = 160; // px approx
-  const opacity = isBig ? 0.15 + sizeProgress * 0.85 : 1;
+  const isBig = t < 1;
 
-  const containerStyle: React.CSSProperties = isBig
-    ? {
-        position: "fixed",
-        left: "50%",
-        top: "50%",
-        transform: "translate(-50%, -50%)",
-        width: `${bigSize * (1 - sizeProgress) + (sizeProgress * 10)}vh`,
-        height: `${bigSize * (1 - sizeProgress) + (sizeProgress * 12)}vh`,
-        opacity,
-        zIndex: 5,
-        pointerEvents: "none",
-        transition: "width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out",
-      }
-    : {
-        position: "fixed",
-        left: "50%",
-        top: "50%",
-        transform: "translate(-50%, -50%)",
-        width: 120,
-        height: 160,
-        opacity: 1,
-        zIndex: 20,
-        pointerEvents: "none" as const,
-        transition: "width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out",
-      };
+  // Size: big = 100vmin, small = 120px width / 160px height
+  // Lerp in vmin for big, px for small
+  const sizeVmin = 100 * (1 - t); // 100 → 0
+  const sizePxW = 120 * t; // 0 → 120
+  const sizePxH = 160 * t; // 0 → 160
+
+  const width = isBig ? `calc(${sizeVmin}vmin + ${sizePxW}px)` : "120px";
+  const height = isBig ? `calc(${sizeVmin * 1.33}vmin + ${sizePxH}px)` : "160px";
+  const opacity = isBig ? 0.55 + t * 0.45 : 1;
 
   return (
-    <div className="hidden md:block" style={containerStyle}>
+    <div
+      className="hidden md:block fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+      style={{
+        width,
+        height,
+        opacity,
+        zIndex: isBig ? 5 : 20,
+        pointerEvents: "none",
+        transition: "width 0.15s ease-out, height 0.15s ease-out, opacity 0.15s ease-out",
+      }}
+    >
       <div
         style={{
           transform: isBig ? "" : jiggleTransform,
