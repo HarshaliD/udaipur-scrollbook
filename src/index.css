@@ -74,33 +74,6 @@
 .sparkle {
   animation: sparkle-burst 0.8s ease-out forwards;
 }
-/* Puppet animations */
-@keyframes puppetDance {
-  0%   { transform: rotate(-12deg) translateY(0px); }
-  15%  { transform: rotate(10deg) translateY(-6px); }
-  30%  { transform: rotate(-8deg) translateY(-2px); }
-  45%  { transform: rotate(12deg) translateY(-8px); }
-  60%  { transform: rotate(-10deg) translateY(-3px); }
-  75%  { transform: rotate(8deg) translateY(-6px); }
-  90%  { transform: rotate(-6deg) translateY(-1px); }
-  100% { transform: rotate(-12deg) translateY(0px); }
-}
-
-@keyframes puppetSway {
-  0%   { transform: rotate(-4deg); }
-  50%  { transform: rotate(4deg); }
-  100% { transform: rotate(-4deg); }
-}
-
-.puppet-sway {
-  animation: puppetSway 3s ease-in-out infinite;
-  transform-origin: top center;
-}
-
-.puppet-dance {
-  animation: puppetDance 0.6s ease-in-out infinite;
-  transform-origin: top center;
-}
 
 /* Confetti */
 @keyframes confetti-fall {
