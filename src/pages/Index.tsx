@@ -25,7 +25,6 @@ interface MemoryData {
 
 const LOCATIONS: LocationData[] = [
   { id: "city-palace", name: "City Palace", day: 1, image: cityPalaceImg, defaultDate: "2025-03-01" },
-  { id: "lake-pichola", name: "Lake Pichola Boat Ride", day: 1, image: lakePicholaImg, defaultDate: "2025-03-01" },
   { id: "jagdish-temple", name: "Jagdish Temple", day: 1, image: jagdishTempleImg, defaultDate: "2025-03-01" },
   { id: "monsoon-palace", name: "Sajjangarh Monsoon Palace", day: 2, image: monsoonPalaceImg, defaultDate: "2025-03-02" },
   { id: "fateh-sagar", name: "Fateh Sagar Lake", day: 2, image: fatehSagarImg, defaultDate: "2025-03-02" },
