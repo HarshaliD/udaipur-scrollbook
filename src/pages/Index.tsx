@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import cityPalaceImg from "@/assets/city-palace.svg";
+import lakePicholaImg from "@/assets/lake-pichola.svg";
 import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
-import boatImg from "@/assets/boat.svg";
-import lotusImg from "@/assets/lotus.svg";
 import PuppetDancer from "@/components/PuppetDancer";
 
 interface LocationData {
@@ -25,6 +24,7 @@ interface MemoryData {
 
 const LOCATIONS: LocationData[] = [
   { id: "city-palace", name: "City Palace", day: 1, image: cityPalaceImg, defaultDate: "2025-03-01" },
+  { id: "lake-pichola", name: "Lake Pichola Boat Ride", day: 1, image: lakePicholaImg, defaultDate: "2025-03-01" },
   { id: "jagdish-temple", name: "Jagdish Temple", day: 1, image: jagdishTempleImg, defaultDate: "2025-03-01" },
   { id: "monsoon-palace", name: "Sajjangarh Monsoon Palace", day: 2, image: monsoonPalaceImg, defaultDate: "2025-03-02" },
   { id: "fateh-sagar", name: "Fateh Sagar Lake", day: 2, image: fatehSagarImg, defaultDate: "2025-03-02" },
@@ -108,9 +108,6 @@ export default function Index() {
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
-  const [shakeId, setShakeId] = useState<string | null>(null);
-  const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
-  const [lotusId, setLotusId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
@@ -155,6 +152,7 @@ export default function Index() {
     (id: string) => {
       setMemories((prev) => {
         const updated = { ...prev, [id]: { ...prev[id], visited: true } };
+        // Check if all visited after update
         const nowAllVisited = LOCATIONS.every((loc) => updated[loc.id]?.visited);
         if (nowAllVisited && !allVisited) {
           setShowConfetti(true);
@@ -162,20 +160,6 @@ export default function Index() {
         }
         return updated;
       });
-      // Shake animation
-      setShakeId(id);
-      setTimeout(() => setShakeId(null), 800);
-      // Boat sailing animation (not for jagdish-temple)
-      if (id !== "jagdish-temple") {
-        setBoatSailingId(id);
-        setTimeout(() => setBoatSailingId(null), 4500);
-      }
-      // Lotus animation for jagdish-temple
-      if (id === "jagdish-temple") {
-        setLotusId(id);
-        setTimeout(() => setLotusId(null), 3000);
-      }
-      // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
     },
@@ -206,7 +190,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background paper-texture relative overflow-x-hidden">
       {showConfetti && <Confetti />}
-      <PuppetDancer />
+      <PuppetDancer scrollProgress={scrollProgress} />
 
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
@@ -288,40 +272,18 @@ export default function Index() {
 
                 {/* Illustration */}
                 <div className="relative mb-4">
-                  <div className="overflow-hidden">
-                    <div
-                      className={`illustration-wrapper ${mem.visited ? "visited" : ""} ${shakeId === loc.id ? "shake-animation" : ""} mx-auto md:mx-0`}
-                      style={{
-                        transform: `rotate(${isLeft ? -2 : 2}deg)`,
-                        maxWidth: 340,
-                        filter: (loc.id === "city-palace" || loc.id === "jagdish-temple")
-                          ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                          : mem.visited
-                            ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                            : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
-                        transition: "filter 1.2s ease",
-                      }}
-                    >
-                      <img src={loc.image} alt={loc.name} className="w-full h-auto" />
-                    </div>
+                  <div
+                    className={`illustration-wrapper ${mem.visited ? "visited" : ""} mx-auto md:mx-0`}
+                    style={{
+                      transform: `rotate(${isLeft ? -2 : 2}deg)`,
+                      maxWidth: 340,
+                      filter: mem.visited ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))" : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
+                      transition: "filter 1.2s ease",
+                    }}
+                  >
+                    <img src={loc.image} alt={loc.name} className="w-full h-auto" />
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
-                  {/* Boat animation (not for jagdish-temple) */}
-                  {boatSailingId === loc.id && loc.id !== "jagdish-temple" && (
-                    <img
-                      src={boatImg}
-                      alt="Boat"
-                      className="boat-sailing z-20"
-                    />
-                  )}
-                  {/* Lotus for jagdish-temple — persists while visited */}
-                  {loc.id === "jagdish-temple" && mem.visited && (
-                    <img
-                      src={lotusImg}
-                      alt="Lotus"
-                      className={lotusId === loc.id ? "lotus-animation" : "lotus-static"}
-                    />
-                  )}
                 </div>
 
                 {/* Location name */}
@@ -338,12 +300,9 @@ export default function Index() {
                     📍 Mark as Visited
                   </button>
                 ) : (
-                  <button
-                    onClick={() => setMemories((prev) => ({ ...prev, [loc.id]: { ...prev[loc.id], visited: false } }))}
-                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground font-handwritten text-lg mb-4 hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 cursor-pointer"
-                  >
+                  <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground font-handwritten text-lg mb-4">
                     ✓ Visited
-                  </button>
+                  </div>
                 )}
 
                 {/* Memory card */}
@@ -433,7 +392,7 @@ export default function Index() {
             "Udaipur — a journey of lakes, palaces, and memories."
           </p>
           <p className="text-sm text-muted-foreground mt-4">
-            {visitedCount}/{LOCATIONS.length} locations visited
+            {visitedCount}/6 locations visited
           </p>
         </div>
       </div>
