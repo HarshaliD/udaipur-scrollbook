@@ -287,11 +287,7 @@ export default function Index() {
                     style={{
                       transform: `rotate(${isLeft ? -2 : 2}deg)`,
                       maxWidth: 340,
-                    filter: (loc.id === "city-palace" || loc.id === "jagdish-temple" || loc.id === "monsoon-palace")
-                        ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                        : mem.visited
-                          ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                          : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
+                    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.15))",
                       transition: "filter 1.2s ease",
                     }}
                   >
