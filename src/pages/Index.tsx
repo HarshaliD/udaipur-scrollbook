@@ -303,7 +303,7 @@ export default function Index() {
                       <img
                         src={boatImg}
                         alt="Boat"
-                        className="boat-sailing h-28 w-auto"
+                        className="boat-sailing h-44 w-auto"
                         style={{ bottom: 0 }}
                       />
                     </div>
