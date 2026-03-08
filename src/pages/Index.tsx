@@ -165,8 +165,8 @@ export default function Index() {
       // Shake animation
       setShakeId(id);
       setTimeout(() => setShakeId(null), 800);
-      // Boat sailing animation (not for jagdish-temple)
-      if (id !== "jagdish-temple") {
+      // Boat sailing animation (only for city-palace)
+      if (id === "city-palace") {
         setBoatSailingId(id);
         setTimeout(() => setBoatSailingId(null), 4500);
       }
@@ -316,8 +316,8 @@ export default function Index() {
                     )}
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
-                  {/* Boat animation (not for jagdish-temple) */}
-                  {boatSailingId === loc.id && loc.id !== "jagdish-temple" && (
+                  {/* Boat animation (only for city-palace) */}
+                  {boatSailingId === loc.id && loc.id === "city-palace" && (
                     <img
                       src={boatImg}
                       alt="Boat"
