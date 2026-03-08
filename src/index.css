@@ -187,22 +187,3 @@
   z-index: 20;
   animation: lotus-appear 0.9s ease-out forwards;
 }
-
-/* Girl overlay animation for Saheliyon Ki Bari */
-@keyframes girl-appear {
-  0% { transform: translateX(-50%) scale(0); opacity: 0; }
-  100% { transform: translateX(-50%) scale(1); opacity: 1; }
-}
-
-.girl-animation {
-  position: absolute;
-  bottom: 10%;
-  left: 50%;
-  width: 60%;
-  height: auto;
-  transform: translateX(-50%) scale(0);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 20;
-  animation: girl-appear 0.9s ease-out forwards;
-}
