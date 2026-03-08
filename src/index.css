@@ -128,3 +128,40 @@
 .illustration-wrapper.visited {
   filter: grayscale(0%);
 }
+
+/* Shake animation for visited */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-6px) rotate(-2deg); }
+  20% { transform: translateX(6px) rotate(2deg); }
+  30% { transform: translateX(-4px) rotate(-1deg); }
+  40% { transform: translateX(4px) rotate(1deg); }
+  50% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
+}
+
+.shake-animation {
+  animation: shake 0.8s ease-in-out;
+}
+
+/* Boat sailing animation */
+@keyframes boat-sail {
+  0% { transform: translateX(-100px) translateY(0); opacity: 0; }
+  10% { opacity: 1; }
+  25% { transform: translateX(25%) translateY(-3px); }
+  50% { transform: translateX(50%) translateY(2px); }
+  75% { transform: translateX(75%) translateY(-2px); }
+  90% { opacity: 1; }
+  100% { transform: translateX(calc(100% + 100px)) translateY(0); opacity: 0; }
+}
+
+.boat-sailing {
+  animation: boat-sail 4s ease-in-out forwards;
+}
+
+/* Boat bobbing */
+@keyframes boat-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(1deg); }
+  75% { transform: translateY(3px) rotate(-1deg); }
+}

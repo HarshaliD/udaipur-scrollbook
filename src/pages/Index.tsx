@@ -6,6 +6,7 @@ import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
+import boatImg from "@/assets/boat.svg";
 import PuppetDancer from "@/components/PuppetDancer";
 
 interface LocationData {
@@ -108,6 +109,8 @@ export default function Index() {
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
+  const [shakeId, setShakeId] = useState<string | null>(null);
+  const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
@@ -152,7 +155,6 @@ export default function Index() {
     (id: string) => {
       setMemories((prev) => {
         const updated = { ...prev, [id]: { ...prev[id], visited: true } };
-        // Check if all visited after update
         const nowAllVisited = LOCATIONS.every((loc) => updated[loc.id]?.visited);
         if (nowAllVisited && !allVisited) {
           setShowConfetti(true);
@@ -160,6 +162,13 @@ export default function Index() {
         }
         return updated;
       });
+      // Shake animation
+      setShakeId(id);
+      setTimeout(() => setShakeId(null), 800);
+      // Boat sailing animation
+      setBoatSailingId(id);
+      setTimeout(() => setBoatSailingId(null), 4500);
+      // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
     },
@@ -273,17 +282,31 @@ export default function Index() {
                 {/* Illustration */}
                 <div className="relative mb-4">
                   <div
-                    className={`illustration-wrapper ${mem.visited ? "visited" : ""} mx-auto md:mx-0`}
+                    className={`illustration-wrapper ${mem.visited ? "visited" : ""} ${shakeId === loc.id ? "shake-animation" : ""} mx-auto md:mx-0`}
                     style={{
                       transform: `rotate(${isLeft ? -2 : 2}deg)`,
                       maxWidth: 340,
-                      filter: mem.visited ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))" : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
+                      filter: loc.id === "city-palace"
+                        ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
+                        : mem.visited
+                          ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
+                          : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
                       transition: "filter 1.2s ease",
                     }}
                   >
                     <img src={loc.image} alt={loc.name} className="w-full h-auto" />
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
+                  {/* Boat animation */}
+                  {boatSailingId === loc.id && (
+                    <div className="absolute bottom-[10%] left-0 w-full overflow-hidden pointer-events-none z-20">
+                      <img
+                        src={boatImg}
+                        alt="Boat"
+                        className="boat-sailing h-12 w-auto"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Location name */}
