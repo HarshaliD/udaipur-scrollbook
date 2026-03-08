@@ -128,3 +128,26 @@
 .illustration-wrapper.visited {
   filter: grayscale(0%);
 }
+
+/* Boat sailing animation */
+@keyframes boat-sail {
+  0% { left: -500px; }
+  100% { left: 110%; }
+}
+
+@keyframes boat-bob {
+  0%, 100% { transform: translateY(-50%) rotate(0deg); }
+  50% { transform: translateY(calc(-50% - 8px)) rotate(2deg); }
+}
+
+.boat-sailing {
+  position: absolute;
+  top: 75%;
+  left: -500px;
+  width: 400px;
+  height: auto;
+  transform: translateY(-50%);
+  animation: boat-sail 6s linear forwards, boat-bob 2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 5;
+}
