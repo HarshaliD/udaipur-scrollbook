@@ -167,7 +167,7 @@ export default function Index() {
       setTimeout(() => setShakeId(null), 800);
       // Boat sailing animation
       setBoatSailingId(id);
-      setTimeout(() => setBoatSailingId(null), 4500);
+      setTimeout(() => setBoatSailingId(null), 6500);
       // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
@@ -280,12 +280,11 @@ export default function Index() {
                 </div>
 
                 {/* Illustration */}
-                <div className="relative mb-4">
+                <div className="relative mb-4 overflow-hidden" style={{ maxWidth: 340 }}>
                   <div
                     className={`illustration-wrapper ${mem.visited ? "visited" : ""} ${shakeId === loc.id ? "shake-animation" : ""} mx-auto md:mx-0`}
                     style={{
                       transform: `rotate(${isLeft ? -2 : 2}deg)`,
-                      maxWidth: 340,
                       filter: loc.id === "city-palace"
                         ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
                         : mem.visited
@@ -299,14 +298,11 @@ export default function Index() {
                   <SparkleOverlay active={sparkleId === loc.id} />
                   {/* Boat animation */}
                   {boatSailingId === loc.id && (
-                    <div className="absolute bottom-[10%] left-0 w-full pointer-events-none z-20 overflow-hidden" style={{ height: 80 }}>
-                      <img
-                        src={boatImg}
-                        alt="Boat"
-                        className="boat-sailing w-auto"
-                        style={{ height: 75 }}
-                      />
-                    </div>
+                    <img
+                      src={boatImg}
+                      alt="Boat"
+                      className="boat-sailing z-20"
+                    />
                   )}
                 </div>
 
