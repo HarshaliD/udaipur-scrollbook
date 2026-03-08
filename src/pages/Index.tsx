@@ -427,7 +427,7 @@ export default function Index() {
             "Udaipur — a journey of lakes, palaces, and memories."
           </p>
           <p className="text-sm text-muted-foreground mt-4">
-            {visitedCount}/6 locations visited
+            {visitedCount}/{LOCATIONS.length} locations visited
           </p>
         </div>
       </div>
