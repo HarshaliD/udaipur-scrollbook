@@ -6,6 +6,7 @@ import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
+import PuppetDancer from "@/components/PuppetDancer";
 
 interface LocationData {
   id: string;
