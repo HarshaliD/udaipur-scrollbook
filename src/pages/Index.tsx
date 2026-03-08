@@ -2,11 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 import cityPalaceImg from "@/assets/city-palace.svg";
 import jagdishTempleImg from "@/assets/jagdish-temple.svg";
-import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
-import fatehSagarImg from "@/assets/fateh-sagar.svg";
-import oldCityWalkImg from "@/assets/old-city-walk.svg";
-import boatImg from "@/assets/boat.svg";
 import lotusImg from "@/assets/lotus.svg";
+import saheliyonImg from "@/assets/saheliyon-ki-bari.svg";
+import girlImg from "@/assets/girl.svg";
+import monsoonPalaceImg from "@/assets/monsoon-palace-new.svg";
+import windowImg from "@/assets/window.png";
 import PuppetDancer from "@/components/PuppetDancer";
 
 interface LocationData {
@@ -26,9 +26,8 @@ interface MemoryData {
 const LOCATIONS: LocationData[] = [
   { id: "city-palace", name: "City Palace", day: 1, image: cityPalaceImg, defaultDate: "2025-03-01" },
   { id: "jagdish-temple", name: "Jagdish Temple", day: 1, image: jagdishTempleImg, defaultDate: "2025-03-01" },
+  { id: "saheliyon-ki-bari", name: "Saheliyon Ki Bari", day: 2, image: saheliyonImg, defaultDate: "2025-03-02" },
   { id: "monsoon-palace", name: "Sajjangarh Monsoon Palace", day: 2, image: monsoonPalaceImg, defaultDate: "2025-03-02" },
-  { id: "fateh-sagar", name: "Fateh Sagar Lake", day: 2, image: fatehSagarImg, defaultDate: "2025-03-02" },
-  { id: "old-city-walk", name: "Old City Walk", day: 2, image: oldCityWalkImg, defaultDate: "2025-03-02" },
 ];
 
 const STORAGE_KEY = "udaipur-memories";
@@ -109,7 +108,6 @@ export default function Index() {
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
   const [shakeId, setShakeId] = useState<string | null>(null);
-  const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
@@ -150,28 +148,26 @@ export default function Index() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const markVisited = useCallback(
+  const toggleVisited = useCallback(
     (id: string) => {
       setMemories((prev) => {
-        const updated = { ...prev, [id]: { ...prev[id], visited: true } };
-        const nowAllVisited = LOCATIONS.every((loc) => updated[loc.id]?.visited);
-        if (nowAllVisited && !allVisited) {
-          setShowConfetti(true);
-          setTimeout(() => setShowConfetti(false), 4000);
+        const wasVisited = prev[id]?.visited;
+        const updated = { ...prev, [id]: { ...prev[id], visited: !wasVisited } };
+        if (!wasVisited) {
+          const nowAllVisited = LOCATIONS.every((loc) => updated[loc.id]?.visited);
+          if (nowAllVisited && !allVisited) {
+            setShowConfetti(true);
+            setTimeout(() => setShowConfetti(false), 4000);
+          }
+          // Shake animation
+          setShakeId(id);
+          setTimeout(() => setShakeId(null), 800);
+          // Sparkle
+          setSparkleId(id);
+          setTimeout(() => setSparkleId(null), 800);
         }
         return updated;
       });
-      // Shake animation
-      setShakeId(id);
-      setTimeout(() => setShakeId(null), 800);
-      // Boat sailing animation (not for jagdish-temple)
-      if (id !== "jagdish-temple") {
-        setBoatSailingId(id);
-        setTimeout(() => setBoatSailingId(null), 4500);
-      }
-      // Sparkle
-      setSparkleId(id);
-      setTimeout(() => setSparkleId(null), 800);
     },
     [allVisited]
   );
@@ -222,14 +218,12 @@ export default function Index() {
           preserveAspectRatio="none"
           viewBox={`0 0 32 ${pathTotalLength}`}
         >
-          {/* Background dashed path */}
           <line
             x1="16" y1="0" x2="16" y2={pathTotalLength}
             stroke="hsl(34, 30%, 82%)"
             strokeWidth="2"
             strokeDasharray="8 6"
           />
-          {/* Drawn path */}
           <line
             x1="16" y1="0" x2="16" y2={pathTotalLength}
             stroke="hsl(20, 76%, 60%)"
@@ -238,7 +232,6 @@ export default function Index() {
             strokeDashoffset={pathTotalLength - pathDrawn}
             style={{ transition: "stroke-dashoffset 0.1s linear" }}
           />
-          {/* Traveler dot */}
           <circle
             cx="16"
             cy={Math.min(pathDrawn, pathTotalLength)}
@@ -261,7 +254,7 @@ export default function Index() {
               ref={(el) => { sectionRefs.current[idx] = el; }}
               className={`fade-up ${isVisible ? "visible" : ""} relative mb-24 md:mb-32`}
             >
-              {/* Node circle — centered on desktop */}
+              {/* Node circle */}
               <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full border-2 border-warm-orange bg-background items-center justify-center z-10 font-handwritten text-lg text-warm-orange font-bold shadow">
                 {idx + 1}
               </div>
@@ -287,31 +280,37 @@ export default function Index() {
                     style={{
                       transform: `rotate(${isLeft ? -2 : 2}deg)`,
                       maxWidth: 340,
-                      filter: (loc.id === "city-palace" || loc.id === "jagdish-temple")
-                        ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                        : mem.visited
-                          ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                          : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
+                      filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.15))",
                       transition: "filter 1.2s ease",
                     }}
                   >
-                    <img src={loc.image} alt={loc.name} className="w-full h-auto" />
+                    {/* Monsoon Palace: swap image entirely when visited */}
+                    {loc.id === "monsoon-palace" ? (
+                      <img
+                        src={mem.visited ? windowImg : loc.image}
+                        alt={loc.name}
+                        className="w-full h-auto"
+                        style={{ transition: "opacity 0.5s ease" }}
+                      />
+                    ) : (
+                      <img src={loc.image} alt={loc.name} className="w-full h-auto" />
+                    )}
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
-                  {/* Boat animation (not for jagdish-temple) */}
-                  {boatSailingId === loc.id && loc.id !== "jagdish-temple" && (
-                    <img
-                      src={boatImg}
-                      alt="Boat"
-                      className="boat-sailing z-20"
-                    />
-                  )}
                   {/* Lotus animation for jagdish-temple — visible when visited */}
                   {loc.id === "jagdish-temple" && mem.visited && (
                     <img
                       src={lotusImg}
                       alt="Lotus"
                       className="lotus-animation"
+                    />
+                  )}
+                  {/* Girl overlay for saheliyon-ki-bari — visible when visited */}
+                  {loc.id === "saheliyon-ki-bari" && mem.visited && (
+                    <img
+                      src={girlImg}
+                      alt="Girl"
+                      className="girl-animation"
                     />
                   )}
                 </div>
@@ -321,17 +320,17 @@ export default function Index() {
                   {loc.name}
                 </h2>
 
-                {/* Mark as Visited button */}
+                {/* Mark as Visited / Unvisit toggle button */}
                 {!mem.visited ? (
                   <button
-                    onClick={() => markVisited(loc.id)}
+                    onClick={() => toggleVisited(loc.id)}
                     className="px-5 py-2 rounded-full border-2 border-warm-orange text-warm-orange font-handwritten text-lg hover:bg-warm-orange hover:text-primary-foreground transition-colors duration-300 mb-4"
                   >
                     📍 Mark as Visited
                   </button>
                 ) : (
                   <button
-                    onClick={() => setMemories((prev) => ({ ...prev, [loc.id]: { ...prev[loc.id], visited: false } }))}
+                    onClick={() => toggleVisited(loc.id)}
                     className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground font-handwritten text-lg mb-4 hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 cursor-pointer"
                   >
                     ✓ Visited
@@ -405,7 +404,6 @@ export default function Index() {
             Journey Complete ✨
           </h2>
 
-          {/* Photo collage */}
           {allVisited && Object.values(photos).flat().length > 0 && (
             <div className="flex flex-wrap justify-center gap-4 mb-8 max-w-lg mx-auto">
               {Object.entries(photos).flatMap(([locId, urls]) =>
