@@ -6,6 +6,7 @@ import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
+import PuppetDancer from "@/components/PuppetDancer";
 
 interface LocationData {
   id: string;
@@ -189,6 +190,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background paper-texture relative overflow-x-hidden">
       {showConfetti && <Confetti />}
+      <PuppetDancer scrollProgress={scrollProgress} />
 
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
