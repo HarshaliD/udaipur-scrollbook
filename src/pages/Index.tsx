@@ -172,6 +172,9 @@ export default function Index() {
       // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
+      // Lotus zoom
+      setLotusId(id);
+      setTimeout(() => setLotusId(null), 2000);
     },
     [allVisited]
   );
