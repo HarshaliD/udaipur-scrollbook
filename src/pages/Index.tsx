@@ -109,6 +109,8 @@ export default function Index() {
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
+  const [shakeId, setShakeId] = useState<string | null>(null);
+  const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
