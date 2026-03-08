@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <filter id="sketch3">
+      <feTurbulence type="fractalNoise" baseFrequency="0.045" numOctaves="4" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.6" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <linearGradient id="sky3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fce8d8"/>
+      <stop offset="100%" stop-color="#f8d0a8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Sky -->
+  <rect width="400" height="300" fill="url(#sky3)" rx="8"/>
+
+  <!-- Ground / courtyard -->
+  <rect x="0" y="240" width="400" height="60" fill="#e8c898" filter="url(#sketch3)"/>
+  <!-- Courtyard tiles hint -->
+  <line x1="0" y1="250" x2="400" y2="250" stroke="#d4a870" stroke-width="0.6" opacity="0.4"/>
+  <line x1="0" y1="262" x2="400" y2="262" stroke="#d4a870" stroke-width="0.6" opacity="0.4"/>
+
+  <!-- Wide stair base -->
+  <rect x="55" y="230" width="290" height="15" fill="#e0c090" stroke="#c09050" stroke-width="1" filter="url(#sketch3)"/>
+  <rect x="75" y="218" width="250" height="15" fill="#e8c898" stroke="#c09050" stroke-width="1" filter="url(#sketch3)"/>
+  <rect x="95" y="207" width="210" height="14" fill="#f0d0a0" stroke="#c09050" stroke-width="1" filter="url(#sketch3)"/>
+  <rect x="110" y="197" width="180" height="13" fill="#e8c898" stroke="#c09050" stroke-width="1" filter="url(#sketch3)"/>
+
+  <!-- Temple platform -->
+  <rect x="118" y="182" width="164" height="18" fill="#f0d0a0" stroke="#c09050" stroke-width="1.5" filter="url(#sketch3)"/>
+
+  <!-- Main temple body -->
+  <rect x="138" y="130" width="124" height="55" fill="#f5ddb8" stroke="#c09050" stroke-width="1.5" filter="url(#sketch3)"/>
+
+  <!-- Carved decorative band on body -->
+  <rect x="138" y="148" width="124" height="8" fill="#f0c878" opacity="0.5" stroke="#c09050" stroke-width="0.5"/>
+  <!-- Carved niches with deity figures (simplified) -->
+  <path d="M155,133 Q162,127 169,133 L169,150 L155,150 Z" fill="#e0a858" stroke="#b07830" stroke-width="0.8" opacity="0.7"/>
+  <path d="M185,133 Q192,127 199,133 L199,150 L185,150 Z" fill="#e0a858" stroke="#b07830" stroke-width="0.8" opacity="0.7"/>
+  <path d="M215,133 Q222,127 229,133 L229,150 L215,150 Z" fill="#e0a858" stroke="#b07830" stroke-width="0.8" opacity="0.7"/>
+
+  <!-- Shikhara (tower) - curvilinear spire -->
+  <!-- Shikhara layers building up -->
+  <path d="M138,130 Q145,120 162,108 Q176,96 200,70 Q224,96 238,108 Q255,120 262,130 Z" fill="#f5ddb8" stroke="#c09050" stroke-width="1.5" filter="url(#sketch3)"/>
+  <!-- Shikhara ribs/ridges -->
+  <path d="M165,128 Q178,108 200,76 Q222,108 235,128" fill="none" stroke="#c09050" stroke-width="0.8" opacity="0.5"/>
+  <path d="M172,128 Q183,112 200,84 Q217,112 228,128" fill="none" stroke="#c09050" stroke-width="0.6" opacity="0.4"/>
+  <path d="M180,128 Q189,115 200,92 Q211,115 220,128" fill="none" stroke="#c09050" stroke-width="0.5" opacity="0.4"/>
+  <!-- Amalaka (disc at top) -->
+  <ellipse cx="200" cy="68" rx="15" ry="6" fill="#e8a040" stroke="#b07830" stroke-width="1.2" filter="url(#sketch3)"/>
+  <!-- Kalasha (finial) -->
+  <ellipse cx="200" cy="60" rx="7" ry="5" fill="#d89030" stroke="#b07830" stroke-width="1.2" filter="url(#sketch3)"/>
+  <line x1="200" y1="55" x2="200" y2="44" stroke="#b07830" stroke-width="1.5"/>
+  <circle cx="200" cy="42" r="5" fill="#e8a040" stroke="#b07830" stroke-width="1"/>
+
+  <!-- Flag on top -->
+  <line x1="200" y1="37" x2="200" y2="25" stroke="#b07830" stroke-width="1.2"/>
+  <polygon points="200,25 216,29 200,34" fill="#e84030" stroke="#b07830" stroke-width="0.5" opacity="0.8"/>
+
+  <!-- Side small shrines -->
+  <rect x="80" y="175" width="40" height="30" fill="#f0d0a0" stroke="#c09050" stroke-width="1.2" filter="url(#sketch3)"/>
+  <path d="M80,175 Q100,158 120,175" fill="#f0c060" stroke="#c09050" stroke-width="1.2" filter="url(#sketch3)"/>
+  <rect x="280" y="175" width="40" height="30" fill="#f0d0a0" stroke="#c09050" stroke-width="1.2" filter="url(#sketch3)"/>
+  <path d="M280,175 Q300,158 320,175" fill="#f0c060" stroke="#c09050" stroke-width="1.2" filter="url(#sketch3)"/>
+
+  <!-- Temple door -->
+  <path d="M187,182 Q200,172 213,182 L213,200 L187,200 Z" fill="#8a5030" stroke="#b07830" stroke-width="1.2" opacity="0.85"/>
+  <!-- Door arch decoration -->
+  <path d="M189,182 Q200,174 211,182" fill="none" stroke="#e0a040" stroke-width="1" opacity="0.7"/>
+
+  <!-- Pilgrims on steps -->
+  <circle cx="140" cy="236" r="6" fill="#7a5030" filter="url(#sketch3)"/>
+  <path d="M136,242 Q140,252 144,242" fill="#e87050" stroke="#c04828" stroke-width="0.8" filter="url(#sketch3)"/>
+  <circle cx="260" cy="230" r="6" fill="#6a4020" filter="url(#sketch3)"/>
+  <path d="M256,236 Q260,246 264,236" fill="#4a8050" stroke="#306030" stroke-width="0.8" filter="url(#sketch3)"/>
+
+  <!-- Marigold offerings / decoration hints -->
+  <circle cx="165" cy="205" r="4" fill="#f4a030" opacity="0.7"/>
+  <circle cx="235" cy="205" r="4" fill="#f4a030" opacity="0.7"/>
+  <circle cx="200" cy="203" r="3" fill="#e87030" opacity="0.65"/>
+
+  <!-- Clouds -->
+  <ellipse cx="60" cy="45" rx="42" ry="13" fill="white" opacity="0.55" filter="url(#sketch3)"/>
+  <ellipse cx="350" cy="40" rx="36" ry="12" fill="white" opacity="0.5" filter="url(#sketch3)"/>
+
+  <text x="200" y="290" font-family="Georgia, serif" font-size="11" fill="#7a4020" text-anchor="middle" font-style="italic" opacity="0.8">Jagdish Temple</text>
+</svg>

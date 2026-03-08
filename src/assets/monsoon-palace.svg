@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <filter id="sketch4">
+      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="5" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="1.7" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <linearGradient id="sunset4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6a3080"/>
+      <stop offset="30%" stop-color="#c04070"/>
+      <stop offset="60%" stop-color="#f08040"/>
+      <stop offset="85%" stop-color="#f8c060"/>
+      <stop offset="100%" stop-color="#f8d888"/>
+    </linearGradient>
+    <radialGradient id="sunGlow4" cx="0.72" cy="0.62" r="0.35">
+      <stop offset="0%" stop-color="#ffd060" stop-opacity="0.8"/>
+      <stop offset="50%" stop-color="#f09040" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#f09040" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Sunset sky -->
+  <rect width="400" height="300" fill="url(#sunset4)" rx="8"/>
+  <!-- Sun glow overlay -->
+  <rect width="400" height="300" fill="url(#sunGlow4)" rx="8"/>
+
+  <!-- Sun disk -->
+  <circle cx="290" cy="185" r="28" fill="#ffd060" opacity="0.85"/>
+  <circle cx="290" cy="185" r="20" fill="#ffe080" opacity="0.9"/>
+
+  <!-- Far background hills (silhouette) -->
+  <path d="M0,210 Q60,170 120,185 Q180,165 240,178 Q300,160 360,172 Q380,168 400,175 L400,220 L0,220 Z" fill="#3a1850" opacity="0.5" filter="url(#sketch4)"/>
+  <path d="M0,220 Q80,190 150,200 Q220,185 300,195 Q350,188 400,195 L400,240 L0,240 Z" fill="#2a1040" opacity="0.4" filter="url(#sketch4)"/>
+
+  <!-- Main hill -->
+  <path d="M0,280 Q80,220 160,210 Q200,200 240,195 Q290,188 340,215 Q370,230 400,240 L400,300 L0,300 Z" fill="#4a2830" filter="url(#sketch4)"/>
+  <!-- Hill mid-layer -->
+  <path d="M140,280 Q175,218 200,210 Q225,202 260,215 Q290,222 310,238 L310,280 Z" fill="#5a3840" filter="url(#sketch4)"/>
+
+  <!-- Palace base on hilltop -->
+  <rect x="145" y="165" width="110" height="48" fill="#e8c898" stroke="#c09050" stroke-width="1.5" filter="url(#sketch4)"/>
+
+  <!-- Arched colonnade -->
+  <path d="M148,175 Q158,165 168,175 L168,190 L148,190 Z" fill="#d4a060" opacity="0.6" stroke="#b07830" stroke-width="0.8"/>
+  <path d="M170,175 Q180,165 190,175 L190,190 L170,190 Z" fill="#d4a060" opacity="0.6" stroke="#b07830" stroke-width="0.8"/>
+  <path d="M210,175 Q220,165 230,175 L230,190 L210,190 Z" fill="#d4a060" opacity="0.6" stroke="#b07830" stroke-width="0.8"/>
+  <path d="M232,175 Q242,165 252,175 L252,190 L232,190 Z" fill="#d4a060" opacity="0.6" stroke="#b07830" stroke-width="0.8"/>
+
+  <!-- Palace upper floor -->
+  <rect x="158" y="142" width="84" height="26" fill="#f0d5a8" stroke="#c09050" stroke-width="1.5" filter="url(#sketch4)"/>
+  <!-- Upper windows -->
+  <path d="M170,148 Q178,142 186,148 L186,160 L170,160 Z" fill="#c08848" opacity="0.65" stroke="#b07830" stroke-width="0.8"/>
+  <path d="M214,148 Q222,142 230,148 L230,160 L214,160 Z" fill="#c08848" opacity="0.65" stroke="#b07830" stroke-width="0.8"/>
+
+  <!-- Towers on corners -->
+  <rect x="145" y="150" width="18" height="18" fill="#f0d5a8" stroke="#c09050" stroke-width="1.2" filter="url(#sketch4)"/>
+  <rect x="237" y="150" width="18" height="18" fill="#f0d5a8" stroke="#c09050" stroke-width="1.2" filter="url(#sketch4)"/>
+  <!-- Tower tops -->
+  <path d="M145,150 Q154,137 163,150" fill="#e8a040" stroke="#c09050" stroke-width="1.2" filter="url(#sketch4)"/>
+  <path d="M237,150 Q246,137 255,150" fill="#e8a040" stroke="#c09050" stroke-width="1.2" filter="url(#sketch4)"/>
+
+  <!-- Central turret -->
+  <rect x="188" y="128" width="24" height="16" fill="#f0d5a8" stroke="#c09050" stroke-width="1.2" filter="url(#sketch4)"/>
+  <path d="M186,128 Q200,114 214,128" fill="#e8a040" stroke="#c09050" stroke-width="1.2" filter="url(#sketch4)"/>
+  <line x1="200" y1="113" x2="200" y2="102" stroke="#b07830" stroke-width="1.5"/>
+  <polygon points="200,100 196,109 204,109" fill="#e84030" opacity="0.8"/>
+
+  <!-- Battlements / crenellations on roof -->
+  <rect x="145" y="160" width="8" height="7" fill="#f0d5a8" stroke="#c09050" stroke-width="0.8" filter="url(#sketch4)"/>
+  <rect x="158" y="160" width="8" height="7" fill="#f0d5a8" stroke="#c09050" stroke-width="0.8" filter="url(#sketch4)"/>
+  <rect x="234" y="160" width="8" height="7" fill="#f0d5a8" stroke="#c09050" stroke-width="0.8" filter="url(#sketch4)"/>
+  <rect x="247" y="160" width="8" height="7" fill="#f0d5a8" stroke="#c09050" stroke-width="0.8" filter="url(#sketch4)"/>
+
+  <!-- Winding path up hill -->
+  <path d="M200,215 Q185,220 175,235 Q168,250 160,265 Q150,278 145,290" fill="none" stroke="#c8a870" stroke-width="2" stroke-dasharray="4,3" opacity="0.5" filter="url(#sketch4)"/>
+
+  <!-- Birds silhouettes -->
+  <path d="M80,100 Q84,96 88,100 Q92,96 96,100" fill="none" stroke="#5a2050" stroke-width="1.5" opacity="0.6"/>
+  <path d="M320,115 Q324,111 328,115 Q332,111 336,115" fill="none" stroke="#5a2050" stroke-width="1.5" opacity="0.6"/>
+  <path d="M280,85 Q283,82 286,85 Q289,82 292,85" fill="none" stroke="#5a2050" stroke-width="1.2" opacity="0.5"/>
+
+  <!-- Clouds (dusk tinted) -->
+  <ellipse cx="70" cy="80" rx="50" ry="14" fill="#f8b080" opacity="0.3" filter="url(#sketch4)"/>
+  <ellipse cx="330" cy="70" rx="45" ry="12" fill="#f8b080" opacity="0.3" filter="url(#sketch4)"/>
+  <ellipse cx="165" cy="60" rx="35" ry="10" fill="#f8c090" opacity="0.25" filter="url(#sketch4)"/>
+
+  <text x="200" y="290" font-family="Georgia, serif" font-size="11" fill="#f8d888" text-anchor="middle" font-style="italic" opacity="0.9">Sajjangarh Monsoon Palace</text>
+</svg>
