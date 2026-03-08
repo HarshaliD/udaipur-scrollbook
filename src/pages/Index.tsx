@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import cityPalaceImg from "@/assets/city-palace.svg";
-import lakePicholaImg from "@/assets/lake-pichola.svg";
 import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
 import boatImg from "@/assets/boat.svg";
+import lotusImg from "@/assets/lotus.svg";
 import PuppetDancer from "@/components/PuppetDancer";
 
 interface LocationData {
