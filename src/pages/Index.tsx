@@ -163,6 +163,8 @@ export default function Index() {
       });
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
+      setIsDancing(true);
+      setTimeout(() => setIsDancing(false), 1200);
     },
     [allVisited]
   );
