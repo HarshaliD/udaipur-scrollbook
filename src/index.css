@@ -146,20 +146,25 @@
 
 /* Boat sailing animation */
 @keyframes boat-sail {
-  0% { left: -120px; opacity: 0; }
-  5% { opacity: 1; }
+  0% { left: -500px; opacity: 0; }
+  10% { opacity: 1; }
   90% { opacity: 1; }
   100% { left: 100%; opacity: 0; }
 }
 
-.boat-sailing {
-  position: absolute;
-  animation: boat-sail 4s ease-in-out forwards;
+@keyframes boat-bob {
+  0%, 100% { transform: translateY(-50%) rotate(0deg); }
+  25% { transform: translateY(calc(-50% - 6px)) rotate(1deg); }
+  75% { transform: translateY(calc(-50% + 6px)) rotate(-1deg); }
 }
 
-/* Boat bobbing */
-@keyframes boat-bob {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-3px) rotate(1deg); }
-  75% { transform: translateY(3px) rotate(-1deg); }
+.boat-sailing {
+  position: absolute;
+  top: 65%;
+  left: -500px;
+  width: 400px;
+  height: auto;
+  transform: translateY(-50%);
+  pointer-events: none;
+  animation: boat-sail 6s linear forwards, boat-bob 2s ease-in-out infinite;
 }

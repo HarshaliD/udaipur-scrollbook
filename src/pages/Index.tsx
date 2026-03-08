@@ -280,7 +280,7 @@ export default function Index() {
                 </div>
 
                 {/* Illustration */}
-                <div className="relative mb-4">
+                <div className="relative mb-4 overflow-hidden">
                   <div
                     className={`illustration-wrapper ${mem.visited ? "visited" : ""} ${shakeId === loc.id ? "shake-animation" : ""} mx-auto md:mx-0`}
                     style={{
@@ -299,14 +299,11 @@ export default function Index() {
                   <SparkleOverlay active={sparkleId === loc.id} />
                   {/* Boat animation */}
                   {boatSailingId === loc.id && (
-                    <div className="absolute bottom-[10%] left-0 w-full pointer-events-none z-20" style={{ overflow: 'visible' }}>
-                      <img
-                        src={boatImg}
-                        alt="Boat"
-                        className="boat-sailing h-28 w-auto"
-                        style={{ bottom: 0 }}
-                      />
-                    </div>
+                    <img
+                      src={boatImg}
+                      alt="Boat"
+                      className="boat-sailing z-20"
+                    />
                   )}
                 </div>
 
