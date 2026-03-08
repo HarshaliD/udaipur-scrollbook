@@ -178,9 +178,9 @@
 
 .lotus-animation {
   position: absolute;
-  bottom: 10%;
+  bottom: 2%;
   left: 50%;
-  width: 150px;
+  width: 96%;
   height: auto;
   transform: translateX(-50%) scale(0);
   pointer-events: none;
