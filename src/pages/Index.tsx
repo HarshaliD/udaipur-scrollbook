@@ -323,9 +323,12 @@ export default function Index() {
                     📍 Mark as Visited
                   </button>
                 ) : (
-                  <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground font-handwritten text-lg mb-4">
+                  <button
+                    onClick={() => setMemories((prev) => ({ ...prev, [loc.id]: { ...prev[loc.id], visited: false } }))}
+                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground font-handwritten text-lg mb-4 hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 cursor-pointer"
+                  >
                     ✓ Visited
-                  </div>
+                  </button>
                 )}
 
                 {/* Memory card */}
