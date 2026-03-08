@@ -106,6 +106,16 @@ function PolaroidCard({ src, label, rotation }: { src: string; label: string; ro
   );
 }
 
+function TravelerPuppet({ isMoving }: { isMoving: boolean }) {
+  return (
+    <div className={`traveler-puppet ${isMoving ? "dancing" : "swaying"}`}>
+      <img src={puppet1} alt="" className="frame frame-1" />
+      <img src={puppet2} alt="" className="frame frame-2" />
+      <img src={puppet3} alt="" className="frame frame-3" />
+    </div>
+  );
+}
+
 export default function Index() {
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
