@@ -167,7 +167,7 @@ export default function Index() {
       setTimeout(() => setShakeId(null), 800);
       // Boat sailing animation
       setBoatSailingId(id);
-      setTimeout(() => setBoatSailingId(null), 6500);
+      setTimeout(() => setBoatSailingId(null), 4500);
       // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
@@ -299,11 +299,12 @@ export default function Index() {
                   <SparkleOverlay active={sparkleId === loc.id} />
                   {/* Boat animation */}
                   {boatSailingId === loc.id && (
-                    <div className="relative w-full pointer-events-none z-20" style={{ height: 0 }}>
+                    <div className="absolute bottom-[10%] left-0 w-full pointer-events-none z-20 overflow-hidden" style={{ height: 80 }}>
                       <img
                         src={boatImg}
                         alt="Boat"
-                        className="boat-sailing"
+                        className="boat-sailing w-auto"
+                        style={{ height: 75 }}
                       />
                     </div>
                   )}
