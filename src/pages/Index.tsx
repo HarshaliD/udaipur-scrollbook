@@ -110,7 +110,6 @@ export default function Index() {
   const [sparkleId, setSparkleId] = useState<string | null>(null);
   const [shakeId, setShakeId] = useState<string | null>(null);
   const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
-  const [lotusId, setLotusId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
@@ -169,11 +168,6 @@ export default function Index() {
       if (id !== "jagdish-temple") {
         setBoatSailingId(id);
         setTimeout(() => setBoatSailingId(null), 4500);
-      }
-      // Lotus animation for jagdish-temple
-      if (id === "jagdish-temple") {
-        setLotusId(id);
-        setTimeout(() => setLotusId(null), 3000);
       }
       // Sparkle
       setSparkleId(id);
@@ -312,8 +306,8 @@ export default function Index() {
                       className="boat-sailing z-20"
                     />
                   )}
-                  {/* Lotus animation for jagdish-temple */}
-                  {lotusId === loc.id && (
+                  {/* Lotus animation for jagdish-temple — visible when visited */}
+                  {loc.id === "jagdish-temple" && mem.visited && (
                     <img
                       src={lotusImg}
                       alt="Lotus"
