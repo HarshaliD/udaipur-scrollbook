@@ -165,6 +165,5 @@
   width: 400px;
   height: auto;
   transform: translateY(-50%);
-  pointer-events: none;
   animation: boat-sail 6s linear forwards, boat-bob 2s ease-in-out infinite;
 }
