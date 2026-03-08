@@ -164,7 +164,6 @@ export default function Index() {
     (id: string) => {
       setMemories((prev) => {
         const updated = { ...prev, [id]: { ...prev[id], visited: true } };
-        // Check if all visited after update
         const nowAllVisited = LOCATIONS.every((loc) => updated[loc.id]?.visited);
         if (nowAllVisited && !allVisited) {
           setShowConfetti(true);
@@ -174,6 +173,8 @@ export default function Index() {
       });
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
+      setIsPuppetDancing(true);
+      setTimeout(() => setIsPuppetDancing(false), 1500);
     },
     [allVisited]
   );
