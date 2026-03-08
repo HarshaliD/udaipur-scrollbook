@@ -276,8 +276,8 @@ export default function Index() {
               >
                 {/* Day badge + Mobile number */}
                 <div className="flex items-center gap-2 mb-3">
-                  <span className="md:hidden w-8 h-8 rounded-full border-2 border-warm-orange bg-background flex items-center justify-center font-handwritten text-warm-orange font-bold text-sm">
-                    {idx + 1}
+                  <span className="md:hidden w-10 h-12 flex items-center justify-center">
+                    <img src={PUPPET_FRAMES[idx % PUPPET_FRAMES.length]} alt="puppet" className="w-full h-full object-contain" />
                   </span>
                   <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-accent text-accent-foreground">
                     Day {loc.day}
