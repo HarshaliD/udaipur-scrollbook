@@ -6,6 +6,7 @@ import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
+import puppetImg from "@/assets/puppet.svg";
 
 interface LocationData {
   id: string;
@@ -108,6 +109,7 @@ export default function Index() {
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [isDancing, setIsDancing] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -161,6 +163,8 @@ export default function Index() {
       });
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
+      setIsDancing(true);
+      setTimeout(() => setIsDancing(false), 1200);
     },
     [allVisited]
   );
@@ -192,7 +196,12 @@ export default function Index() {
 
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
-        <div className="text-5xl mb-6">🎒</div>
+        <img
+          src={puppetImg}
+          alt="Rajasthani Puppet"
+          className={`w-[60px] h-[80px] mb-4 drop-shadow-lg ${isDancing ? "puppet-dance" : "puppet-sway"}`}
+          style={{ filter: "drop-shadow(0 6px 4px rgba(0,0,0,0.2))" }}
+        />
         <h1 className="font-handwritten text-5xl sm:text-7xl md:text-8xl text-foreground leading-tight mb-4">
           My Udaipur Memory Journey
         </h1>
@@ -206,9 +215,10 @@ export default function Index() {
       <div className="relative max-w-4xl mx-auto px-4 pb-32">
         {/* SVG Path — center vertical line */}
         <svg
-          className="absolute left-1/2 top-0 -translate-x-1/2 h-full w-8 pointer-events-none z-0 hidden md:block"
+          className="absolute left-1/2 top-0 -translate-x-1/2 h-full pointer-events-none z-0 hidden md:block"
+          style={{ width: "80px" }}
           preserveAspectRatio="none"
-          viewBox={`0 0 32 ${pathTotalLength}`}
+          viewBox={`-24 0 80 ${pathTotalLength}`}
         >
           {/* Background dashed path */}
           <line
@@ -226,14 +236,22 @@ export default function Index() {
             strokeDashoffset={pathTotalLength - pathDrawn}
             style={{ transition: "stroke-dashoffset 0.1s linear" }}
           />
-          {/* Traveler dot */}
-          <circle
-            cx="16"
-            cy={Math.min(pathDrawn, pathTotalLength)}
-            r="6"
-            fill="hsl(20, 76%, 60%)"
-            style={{ transition: "cy 0.1s linear" }}
-          />
+          {/* Traveler puppet */}
+          <foreignObject
+            x={-26}
+            y={Math.min(pathDrawn, pathTotalLength) - 40}
+            width="60"
+            height="80"
+            style={{ transition: "y 1.2s ease-in-out" }}
+            overflow="visible"
+          >
+            <img
+              src={puppetImg}
+              alt="Traveler puppet"
+              className={`w-[60px] h-[80px] ${isDancing ? "puppet-dance" : "puppet-sway"}`}
+              style={{ filter: "drop-shadow(0 6px 4px rgba(0,0,0,0.2))" }}
+            />
+          </foreignObject>
         </svg>
 
         {/* Location sections */}
