@@ -306,8 +306,8 @@ export default function Index() {
                       className="boat-sailing z-20"
                     />
                   )}
-                  {/* Lotus animation for jagdish-temple */}
-                  {lotusId === loc.id && (
+                  {/* Lotus animation for jagdish-temple — visible when visited */}
+                  {loc.id === "jagdish-temple" && mem.visited && (
                     <img
                       src={lotusImg}
                       alt="Lotus"
