@@ -309,6 +309,13 @@ export default function Index() {
                       className="boat-sailing z-20"
                     />
                   )}
+                  {lotusId === loc.id && (
+                    <img
+                      src={lotusImg}
+                      alt="Lotus"
+                      className="lotus-zoom z-30"
+                    />
+                  )}
                 </div>
 
                 {/* Location name */}
