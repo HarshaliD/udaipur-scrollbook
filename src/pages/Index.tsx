@@ -155,7 +155,6 @@ export default function Index() {
     (id: string) => {
       setMemories((prev) => {
         const updated = { ...prev, [id]: { ...prev[id], visited: true } };
-        // Check if all visited after update
         const nowAllVisited = LOCATIONS.every((loc) => updated[loc.id]?.visited);
         if (nowAllVisited && !allVisited) {
           setShowConfetti(true);
@@ -163,6 +162,13 @@ export default function Index() {
         }
         return updated;
       });
+      // Shake animation
+      setShakeId(id);
+      setTimeout(() => setShakeId(null), 800);
+      // Boat sailing animation
+      setBoatSailingId(id);
+      setTimeout(() => setBoatSailingId(null), 4500);
+      // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
     },
