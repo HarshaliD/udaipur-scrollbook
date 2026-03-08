@@ -190,6 +190,7 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background paper-texture relative overflow-x-hidden">
       {showConfetti && <Confetti />}
+      <PuppetDancer scrollProgress={scrollProgress} />
 
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
