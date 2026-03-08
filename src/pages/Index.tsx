@@ -165,9 +165,16 @@ export default function Index() {
       // Shake animation
       setShakeId(id);
       setTimeout(() => setShakeId(null), 800);
-      // Boat sailing animation
-      setBoatSailingId(id);
-      setTimeout(() => setBoatSailingId(null), 4500);
+      // Boat sailing animation (not for jagdish-temple)
+      if (id !== "jagdish-temple") {
+        setBoatSailingId(id);
+        setTimeout(() => setBoatSailingId(null), 4500);
+      }
+      // Lotus animation for jagdish-temple
+      if (id === "jagdish-temple") {
+        setLotusId(id);
+        setTimeout(() => setLotusId(null), 3000);
+      }
       // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
