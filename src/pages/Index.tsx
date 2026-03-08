@@ -196,7 +196,12 @@ export default function Index() {
 
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
-        <div className="text-5xl mb-6">🎒</div>
+        <img
+          src={puppetImg}
+          alt="Rajasthani Puppet"
+          className={`w-[60px] h-[80px] mb-4 drop-shadow-lg ${isDancing ? "puppet-dance" : "puppet-sway"}`}
+          style={{ filter: "drop-shadow(0 6px 4px rgba(0,0,0,0.2))" }}
+        />
         <h1 className="font-handwritten text-5xl sm:text-7xl md:text-8xl text-foreground leading-tight mb-4">
           My Udaipur Memory Journey
         </h1>
