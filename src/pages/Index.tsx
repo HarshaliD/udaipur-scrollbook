@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import cityPalaceImg from "@/assets/city-palace.svg";
-import lotusImg from "@/assets/lotus.svg";
+import lakePicholaImg from "@/assets/lake-pichola.svg";
 import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
@@ -25,7 +25,7 @@ interface MemoryData {
 
 const LOCATIONS: LocationData[] = [
   { id: "city-palace", name: "City Palace", day: 1, image: cityPalaceImg, defaultDate: "2025-03-01" },
-  
+  { id: "lake-pichola", name: "Lake Pichola Boat Ride", day: 1, image: lakePicholaImg, defaultDate: "2025-03-01" },
   { id: "jagdish-temple", name: "Jagdish Temple", day: 1, image: jagdishTempleImg, defaultDate: "2025-03-01" },
   { id: "monsoon-palace", name: "Sajjangarh Monsoon Palace", day: 2, image: monsoonPalaceImg, defaultDate: "2025-03-02" },
   { id: "fateh-sagar", name: "Fateh Sagar Lake", day: 2, image: fatehSagarImg, defaultDate: "2025-03-02" },
@@ -111,7 +111,6 @@ export default function Index() {
   const [sparkleId, setSparkleId] = useState<string | null>(null);
   const [shakeId, setShakeId] = useState<string | null>(null);
   const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
-  const [lotusId, setLotusId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
@@ -172,9 +171,6 @@ export default function Index() {
       // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
-      // Lotus zoom
-      setLotusId(id);
-      setTimeout(() => setLotusId(null), 2000);
     },
     [allVisited]
   );
@@ -309,13 +305,6 @@ export default function Index() {
                       className="boat-sailing z-20"
                     />
                   )}
-                  {lotusId === loc.id && (
-                    <img
-                      src={lotusImg}
-                      alt="Lotus"
-                      className="lotus-zoom z-30"
-                    />
-                  )}
                 </div>
 
                 {/* Location name */}
@@ -427,7 +416,7 @@ export default function Index() {
             "Udaipur — a journey of lakes, palaces, and memories."
           </p>
           <p className="text-sm text-muted-foreground mt-4">
-            {visitedCount}/{LOCATIONS.length} locations visited
+            {visitedCount}/6 locations visited
           </p>
         </div>
       </div>
