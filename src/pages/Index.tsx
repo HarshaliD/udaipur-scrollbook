@@ -6,6 +6,9 @@ import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
+import puppet1 from "@/assets/puppet1.svg";
+import puppet2 from "@/assets/puppet2.svg";
+import puppet3 from "@/assets/puppet3.svg";
 
 interface LocationData {
   id: string;
@@ -103,6 +106,16 @@ function PolaroidCard({ src, label, rotation }: { src: string; label: string; ro
   );
 }
 
+function TravelerPuppet({ isMoving }: { isMoving: boolean }) {
+  return (
+    <div className={`traveler-puppet ${isMoving ? "dancing" : "swaying"}`}>
+      <img src={puppet1} alt="" className="frame frame-1" />
+      <img src={puppet2} alt="" className="frame frame-2" />
+      <img src={puppet3} alt="" className="frame frame-3" />
+    </div>
+  );
+}
+
 export default function Index() {
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
@@ -111,7 +124,7 @@ export default function Index() {
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
-
+  const [isPuppetDancing, setIsPuppetDancing] = useState(false);
   const allVisited = LOCATIONS.every((loc) => memories[loc.id]?.visited);
 
   // Save to localStorage on change
@@ -151,7 +164,6 @@ export default function Index() {
     (id: string) => {
       setMemories((prev) => {
         const updated = { ...prev, [id]: { ...prev[id], visited: true } };
-        // Check if all visited after update
         const nowAllVisited = LOCATIONS.every((loc) => updated[loc.id]?.visited);
         if (nowAllVisited && !allVisited) {
           setShowConfetti(true);
@@ -161,6 +173,8 @@ export default function Index() {
       });
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
+      setIsPuppetDancing(true);
+      setTimeout(() => setIsPuppetDancing(false), 1500);
     },
     [allVisited]
   );
@@ -226,14 +240,16 @@ export default function Index() {
             strokeDashoffset={pathTotalLength - pathDrawn}
             style={{ transition: "stroke-dashoffset 0.1s linear" }}
           />
-          {/* Traveler dot */}
-          <circle
-            cx="16"
-            cy={Math.min(pathDrawn, pathTotalLength)}
-            r="6"
-            fill="hsl(20, 76%, 60%)"
-            style={{ transition: "cy 0.1s linear" }}
-          />
+          {/* Traveler dot replaced by puppet */}
+          <foreignObject
+            x={-14}
+            y={Math.min(pathDrawn, pathTotalLength) - 40}
+            width="60"
+            height="80"
+            style={{ transition: "y 0.1s linear", overflow: "visible" }}
+          >
+            <TravelerPuppet isMoving={isPuppetDancing} />
+          </foreignObject>
         </svg>
 
         {/* Location sections */}
