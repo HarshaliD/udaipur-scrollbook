@@ -287,21 +287,23 @@ export default function Index() {
                 </div>
 
                 {/* Illustration */}
-                <div className="relative mb-4 overflow-hidden">
-                  <div
-                    className={`illustration-wrapper ${mem.visited ? "visited" : ""} ${shakeId === loc.id ? "shake-animation" : ""} mx-auto md:mx-0`}
-                    style={{
-                      transform: `rotate(${isLeft ? -2 : 2}deg)`,
-                      maxWidth: 340,
-                      filter: (loc.id === "city-palace" || loc.id === "jagdish-temple")
-                        ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                        : mem.visited
-                          ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                          : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
-                      transition: "filter 1.2s ease",
-                    }}
-                  >
-                    <img src={loc.image} alt={loc.name} className="w-full h-auto" />
+                <div className="relative mb-4">
+                  <div className="overflow-hidden">
+                    <div
+                      className={`illustration-wrapper ${mem.visited ? "visited" : ""} ${shakeId === loc.id ? "shake-animation" : ""} mx-auto md:mx-0`}
+                      style={{
+                        transform: `rotate(${isLeft ? -2 : 2}deg)`,
+                        maxWidth: 340,
+                        filter: (loc.id === "city-palace" || loc.id === "jagdish-temple")
+                          ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
+                          : mem.visited
+                            ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
+                            : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
+                        transition: "filter 1.2s ease",
+                      }}
+                    >
+                      <img src={loc.image} alt={loc.name} className="w-full h-auto" />
+                    </div>
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
                   {/* Boat animation (not for jagdish-temple) */}
