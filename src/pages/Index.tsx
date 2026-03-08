@@ -3,6 +3,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import cityPalaceImg from "@/assets/city-palace.svg";
 import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
+import monsoonPalaceWindowImg from "@/assets/monsoon-palace-window.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
 import boatImg from "@/assets/boat.svg";
