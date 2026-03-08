@@ -110,7 +110,6 @@ export default function Index() {
   const [sparkleId, setSparkleId] = useState<string | null>(null);
   const [shakeId, setShakeId] = useState<string | null>(null);
   const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
-  const [lotusId, setLotusId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
