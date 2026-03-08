@@ -299,12 +299,11 @@ export default function Index() {
                   <SparkleOverlay active={sparkleId === loc.id} />
                   {/* Boat animation */}
                   {boatSailingId === loc.id && (
-                    <div className="absolute bottom-[10%] left-0 w-full pointer-events-none z-20 overflow-hidden" style={{ height: 80 }}>
+                    <div className="relative w-full pointer-events-none z-20" style={{ height: 0 }}>
                       <img
                         src={boatImg}
                         alt="Boat"
-                        className="boat-sailing w-auto"
-                        style={{ height: 75 }}
+                        className="boat-sailing"
                       />
                     </div>
                   )}
