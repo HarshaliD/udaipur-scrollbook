@@ -128,3 +128,62 @@
 .illustration-wrapper.visited {
   filter: grayscale(0%);
 }
+
+/* Shake animation for visited */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-6px) rotate(-2deg); }
+  20% { transform: translateX(6px) rotate(2deg); }
+  30% { transform: translateX(-4px) rotate(-1deg); }
+  40% { transform: translateX(4px) rotate(1deg); }
+  50% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
+}
+
+.shake-animation {
+  animation: shake 0.8s ease-in-out;
+}
+
+/* Boat sailing animation */
+@keyframes boat-sail {
+  0% { left: -500px; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+@keyframes boat-bob {
+  0%, 100% { transform: translateY(-50%) rotate(0deg); }
+  25% { transform: translateY(calc(-50% - 6px)) rotate(1deg); }
+  75% { transform: translateY(calc(-50% + 6px)) rotate(-1deg); }
+}
+
+.boat-sailing {
+  position: absolute;
+  top: 65%;
+  left: -500px;
+  width: 400px;
+  height: auto;
+  transform: translateY(-50%);
+  pointer-events: none;
+  animation: boat-sail 6s linear forwards, boat-bob 2s ease-in-out infinite;
+}
+
+/* Lotus zoom-in animation */
+@keyframes lotus-appear {
+  0% { transform: translateX(-50%) scale(0); opacity: 0; }
+  60% { transform: translateX(-50%) scale(1.15); opacity: 1; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+
+.lotus-animation {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  width: 150px;
+  height: auto;
+  transform: translateX(-50%) scale(0);
+  pointer-events: none;
+  z-index: 20;
+  animation: lotus-appear 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
