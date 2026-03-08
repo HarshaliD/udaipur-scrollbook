@@ -191,7 +191,7 @@ export default function Index() {
       {showConfetti && <Confetti />}
 
       {/* Hero */}
-      <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
+      <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center overflow-hidden">
         <div className="text-5xl mb-6">🎒</div>
         <h1 className="font-handwritten text-5xl sm:text-7xl md:text-8xl text-foreground leading-tight mb-4">
           My Udaipur Memory Journey
@@ -200,6 +200,13 @@ export default function Index() {
           A two-day trip through the City of Lakes
         </p>
         <div className="mt-10 animate-bounce text-warm-orange text-2xl">↓</div>
+        {/* Sailing boat */}
+        <svg className="boat-sailing" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10,45 Q60,50 110,45 Q105,55 60,58 Q15,55 10,45Z" fill="hsl(34, 55%, 50%)" stroke="hsl(27, 33%, 16%)" strokeWidth="1.5"/>
+          <path d="M60,45 L60,10 L95,40 Z" fill="hsl(39, 82%, 96%)" stroke="hsl(27, 33%, 16%)" strokeWidth="1"/>
+          <path d="M58,45 L58,15 L30,40 Z" fill="hsl(20, 76%, 60%)" stroke="hsl(27, 33%, 16%)" strokeWidth="1" opacity="0.8"/>
+          <line x1="60" y1="8" x2="60" y2="45" stroke="hsl(27, 33%, 16%)" strokeWidth="1.5"/>
+        </svg>
       </header>
 
       {/* Journey content */}
