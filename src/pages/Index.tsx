@@ -327,6 +327,14 @@ export default function Index() {
                       className="lotus-animation"
                     />
                   )}
+                  {/* Girl overlay for saheliyon-ki-bari — visible when visited */}
+                  {loc.id === "saheliyon-ki-bari" && mem.visited && (
+                    <img
+                      src={girlImg}
+                      alt="Girl"
+                      className="girl-animation"
+                    />
+                  )}
                 </div>
 
                 {/* Location name */}
