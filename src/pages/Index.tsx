@@ -6,6 +6,8 @@ import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import fatehSagarImg from "@/assets/fateh-sagar.svg";
 import oldCityWalkImg from "@/assets/old-city-walk.svg";
+import boatImg from "@/assets/boat.svg";
+import PuppetDancer from "@/components/PuppetDancer";
 
 interface LocationData {
   id: string;
@@ -107,6 +109,8 @@ export default function Index() {
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
+  const [shakeId, setShakeId] = useState<string | null>(null);
+  const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
@@ -151,7 +155,6 @@ export default function Index() {
     (id: string) => {
       setMemories((prev) => {
         const updated = { ...prev, [id]: { ...prev[id], visited: true } };
-        // Check if all visited after update
         const nowAllVisited = LOCATIONS.every((loc) => updated[loc.id]?.visited);
         if (nowAllVisited && !allVisited) {
           setShowConfetti(true);
@@ -159,6 +162,13 @@ export default function Index() {
         }
         return updated;
       });
+      // Shake animation
+      setShakeId(id);
+      setTimeout(() => setShakeId(null), 800);
+      // Boat sailing animation
+      setBoatSailingId(id);
+      setTimeout(() => setBoatSailingId(null), 4500);
+      // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
     },
@@ -189,9 +199,10 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background paper-texture relative overflow-x-hidden">
       {showConfetti && <Confetti />}
+      <PuppetDancer />
 
       {/* Hero */}
-      <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center overflow-hidden">
+      <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
         <div className="text-5xl mb-6">🎒</div>
         <h1 className="font-handwritten text-5xl sm:text-7xl md:text-8xl text-foreground leading-tight mb-4">
           My Udaipur Memory Journey
@@ -200,13 +211,6 @@ export default function Index() {
           A two-day trip through the City of Lakes
         </p>
         <div className="mt-10 animate-bounce text-warm-orange text-2xl">↓</div>
-        {/* Sailing boat */}
-        <svg className="boat-sailing" viewBox="0 0 120 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M10,45 Q60,50 110,45 Q105,55 60,58 Q15,55 10,45Z" fill="hsl(34, 55%, 50%)" stroke="hsl(27, 33%, 16%)" strokeWidth="1.5"/>
-          <path d="M60,45 L60,10 L95,40 Z" fill="hsl(39, 82%, 96%)" stroke="hsl(27, 33%, 16%)" strokeWidth="1"/>
-          <path d="M58,45 L58,15 L30,40 Z" fill="hsl(20, 76%, 60%)" stroke="hsl(27, 33%, 16%)" strokeWidth="1" opacity="0.8"/>
-          <line x1="60" y1="8" x2="60" y2="45" stroke="hsl(27, 33%, 16%)" strokeWidth="1.5"/>
-        </svg>
       </header>
 
       {/* Journey content */}
@@ -278,17 +282,32 @@ export default function Index() {
                 {/* Illustration */}
                 <div className="relative mb-4">
                   <div
-                    className={`illustration-wrapper ${mem.visited ? "visited" : ""} mx-auto md:mx-0`}
+                    className={`illustration-wrapper ${mem.visited ? "visited" : ""} ${shakeId === loc.id ? "shake-animation" : ""} mx-auto md:mx-0`}
                     style={{
                       transform: `rotate(${isLeft ? -2 : 2}deg)`,
                       maxWidth: 340,
-                      filter: mem.visited ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))" : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
+                      filter: loc.id === "city-palace"
+                        ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
+                        : mem.visited
+                          ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
+                          : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
                       transition: "filter 1.2s ease",
                     }}
                   >
                     <img src={loc.image} alt={loc.name} className="w-full h-auto" />
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
+                  {/* Boat animation */}
+                  {boatSailingId === loc.id && (
+                    <div className="absolute bottom-[10%] left-0 w-full pointer-events-none z-20" style={{ overflow: 'visible' }}>
+                      <img
+                        src={boatImg}
+                        alt="Boat"
+                        className="boat-sailing h-28 w-auto"
+                        style={{ bottom: 0 }}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {/* Location name */}
@@ -305,9 +324,12 @@ export default function Index() {
                     📍 Mark as Visited
                   </button>
                 ) : (
-                  <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground font-handwritten text-lg mb-4">
+                  <button
+                    onClick={() => setMemories((prev) => ({ ...prev, [loc.id]: { ...prev[loc.id], visited: false } }))}
+                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground font-handwritten text-lg mb-4 hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 cursor-pointer"
+                  >
                     ✓ Visited
-                  </div>
+                  </button>
                 )}
 
                 {/* Memory card */}

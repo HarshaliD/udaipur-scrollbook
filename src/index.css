@@ -129,25 +129,37 @@
   filter: grayscale(0%);
 }
 
-/* Boat sailing animation */
-@keyframes boat-sail {
-  0% { left: -500px; }
-  100% { left: 110%; }
+/* Shake animation for visited */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10% { transform: translateX(-6px) rotate(-2deg); }
+  20% { transform: translateX(6px) rotate(2deg); }
+  30% { transform: translateX(-4px) rotate(-1deg); }
+  40% { transform: translateX(4px) rotate(1deg); }
+  50% { transform: translateX(-2px); }
+  60% { transform: translateX(2px); }
 }
 
-@keyframes boat-bob {
-  0%, 100% { transform: translateY(-50%) rotate(0deg); }
-  50% { transform: translateY(calc(-50% - 8px)) rotate(2deg); }
+.shake-animation {
+  animation: shake 0.8s ease-in-out;
+}
+
+/* Boat sailing animation */
+@keyframes boat-sail {
+  0% { left: -120px; opacity: 0; }
+  5% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
 }
 
 .boat-sailing {
   position: absolute;
-  top: 75%;
-  left: -500px;
-  width: 400px;
-  height: auto;
-  transform: translateY(-50%);
-  animation: boat-sail 6s linear forwards, boat-bob 2s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 5;
+  animation: boat-sail 4s ease-in-out forwards;
+}
+
+/* Boat bobbing */
+@keyframes boat-bob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-3px) rotate(1deg); }
+  75% { transform: translateY(3px) rotate(-1deg); }
 }
