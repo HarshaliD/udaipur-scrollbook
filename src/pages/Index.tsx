@@ -124,7 +124,7 @@ export default function Index() {
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
-
+  const [isPuppetDancing, setIsPuppetDancing] = useState(false);
   const allVisited = LOCATIONS.every((loc) => memories[loc.id]?.visited);
 
   // Save to localStorage on change
