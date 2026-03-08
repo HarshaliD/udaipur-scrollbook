@@ -2,13 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 
 import cityPalaceImg from "@/assets/city-palace.svg";
 import jagdishTempleImg from "@/assets/jagdish-temple.svg";
-import shoppingImg from "@/assets/shopping.svg";
-import saheliyonImg from "@/assets/saheliyon-ki-bari.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
+import fatehSagarImg from "@/assets/fateh-sagar.svg";
+import oldCityWalkImg from "@/assets/old-city-walk.svg";
+import boatImg from "@/assets/boat.svg";
 import lotusImg from "@/assets/lotus.svg";
-import paisaImg from "@/assets/paisa.svg";
-import girlImg from "@/assets/girl.svg";
-import windowImg from "@/assets/window.png";
 import PuppetDancer from "@/components/PuppetDancer";
 
 interface LocationData {
@@ -28,9 +26,9 @@ interface MemoryData {
 const LOCATIONS: LocationData[] = [
   { id: "city-palace", name: "City Palace", day: 1, image: cityPalaceImg, defaultDate: "2025-03-01" },
   { id: "jagdish-temple", name: "Jagdish Temple", day: 1, image: jagdishTempleImg, defaultDate: "2025-03-01" },
-  { id: "shopping", name: "Shopping", day: 1, image: shoppingImg, defaultDate: "2025-03-01" },
-  { id: "saheliyon-ki-bari", name: "Saheliyon Ki Bari", day: 2, image: saheliyonImg, defaultDate: "2025-03-02" },
   { id: "monsoon-palace", name: "Sajjangarh Monsoon Palace", day: 2, image: monsoonPalaceImg, defaultDate: "2025-03-02" },
+  { id: "fateh-sagar", name: "Fateh Sagar Lake", day: 2, image: fatehSagarImg, defaultDate: "2025-03-02" },
+  { id: "old-city-walk", name: "Old City Walk", day: 2, image: oldCityWalkImg, defaultDate: "2025-03-02" },
 ];
 
 const STORAGE_KEY = "udaipur-memories";
@@ -106,19 +104,12 @@ function PolaroidCard({ src, label, rotation }: { src: string; label: string; ro
   );
 }
 
-// Overlay config per location
-const OVERLAY_CONFIG: Record<string, { src: string; alt: string; className: string }> = {
-  "jagdish-temple": { src: lotusImg, alt: "Lotus", className: "lotus-animation" },
-  "shopping": { src: paisaImg, alt: "Paisa", className: "paisa-animation" },
-  "saheliyon-ki-bari": { src: girlImg, alt: "Girl", className: "girl-animation" },
-  "monsoon-palace": { src: windowImg, alt: "Window", className: "window-animation" },
-};
-
 export default function Index() {
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
   const [shakeId, setShakeId] = useState<string | null>(null);
+  const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
@@ -173,6 +164,11 @@ export default function Index() {
       // Shake animation
       setShakeId(id);
       setTimeout(() => setShakeId(null), 800);
+      // Boat sailing animation (not for jagdish-temple)
+      if (id !== "jagdish-temple") {
+        setBoatSailingId(id);
+        setTimeout(() => setBoatSailingId(null), 4500);
+      }
       // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
@@ -226,12 +222,14 @@ export default function Index() {
           preserveAspectRatio="none"
           viewBox={`0 0 32 ${pathTotalLength}`}
         >
+          {/* Background dashed path */}
           <line
             x1="16" y1="0" x2="16" y2={pathTotalLength}
             stroke="hsl(34, 30%, 82%)"
             strokeWidth="2"
             strokeDasharray="8 6"
           />
+          {/* Drawn path */}
           <line
             x1="16" y1="0" x2="16" y2={pathTotalLength}
             stroke="hsl(20, 76%, 60%)"
@@ -240,6 +238,7 @@ export default function Index() {
             strokeDashoffset={pathTotalLength - pathDrawn}
             style={{ transition: "stroke-dashoffset 0.1s linear" }}
           />
+          {/* Traveler dot */}
           <circle
             cx="16"
             cy={Math.min(pathDrawn, pathTotalLength)}
@@ -255,7 +254,6 @@ export default function Index() {
           const isLeft = idx % 2 === 0;
           const locPhotos = photos[loc.id] || [];
           const isVisible = visibleSections.has(idx);
-          const overlay = OVERLAY_CONFIG[loc.id];
 
           return (
             <div
@@ -263,7 +261,7 @@ export default function Index() {
               ref={(el) => { sectionRefs.current[idx] = el; }}
               className={`fade-up ${isVisible ? "visible" : ""} relative mb-24 md:mb-32`}
             >
-              {/* Node circle */}
+              {/* Node circle — centered on desktop */}
               <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 top-0 w-10 h-10 rounded-full border-2 border-warm-orange bg-background items-center justify-center z-10 font-handwritten text-lg text-warm-orange font-bold shadow">
                 {idx + 1}
               </div>
@@ -272,7 +270,7 @@ export default function Index() {
               <div
                 className={`md:w-[45%] ${isLeft ? "md:mr-auto md:pr-8" : "md:ml-auto md:pl-8"} pt-4 md:pt-0`}
               >
-                {/* Day badge */}
+                {/* Day badge + Mobile number */}
                 <div className="flex items-center gap-2 mb-3">
                   <span className="md:hidden w-8 h-8 rounded-full border-2 border-warm-orange bg-background flex items-center justify-center font-handwritten text-warm-orange font-bold text-sm">
                     {idx + 1}
@@ -289,21 +287,31 @@ export default function Index() {
                     style={{
                       transform: `rotate(${isLeft ? -2 : 2}deg)`,
                       maxWidth: 340,
-                      filter: mem.visited
-                        ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                        : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
+                      filter: (loc.id === "city-palace" || loc.id === "jagdish-temple")
+                        ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
+                        : mem.visited
+                          ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
+                          : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
                       transition: "filter 1.2s ease",
                     }}
                   >
                     <img src={loc.image} alt={loc.name} className="w-full h-auto" />
                   </div>
                   <SparkleOverlay active={sparkleId === loc.id} />
-                  {/* Overlay animation when visited */}
-                  {overlay && mem.visited && (
+                  {/* Boat animation (not for jagdish-temple) */}
+                  {boatSailingId === loc.id && loc.id !== "jagdish-temple" && (
                     <img
-                      src={overlay.src}
-                      alt={overlay.alt}
-                      className={overlay.className}
+                      src={boatImg}
+                      alt="Boat"
+                      className="boat-sailing z-20"
+                    />
+                  )}
+                  {/* Lotus animation for jagdish-temple — visible when visited */}
+                  {loc.id === "jagdish-temple" && mem.visited && (
+                    <img
+                      src={lotusImg}
+                      alt="Lotus"
+                      className="lotus-animation"
                     />
                   )}
                 </div>
@@ -332,6 +340,7 @@ export default function Index() {
 
                 {/* Memory card */}
                 <div className="bg-background border border-border rounded-lg p-4 shadow-sm space-y-4">
+                  {/* Photo upload */}
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-1">
                       📸 Add photos
@@ -356,6 +365,8 @@ export default function Index() {
                       </div>
                     )}
                   </div>
+
+                  {/* Note */}
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-1">
                       ✏️ Memory note
@@ -367,6 +378,8 @@ export default function Index() {
                       className="notepad-textarea w-full min-h-[84px] border border-border rounded-md bg-background px-3 py-2 text-sm font-serif text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-y"
                     />
                   </div>
+
+                  {/* Date */}
                   <div>
                     <label className="block text-sm font-medium text-muted-foreground mb-1">
                       📅 Date
@@ -391,6 +404,8 @@ export default function Index() {
           <h2 className="font-handwritten text-4xl sm:text-5xl text-foreground mb-4">
             Journey Complete ✨
           </h2>
+
+          {/* Photo collage */}
           {allVisited && Object.values(photos).flat().length > 0 && (
             <div className="flex flex-wrap justify-center gap-4 mb-8 max-w-lg mx-auto">
               {Object.entries(photos).flatMap(([locId, urls]) =>
@@ -405,6 +420,7 @@ export default function Index() {
               )}
             </div>
           )}
+
           <p className="font-serif italic text-lg text-muted-foreground max-w-md mx-auto">
             "Udaipur — a journey of lakes, palaces, and memories."
           </p>
