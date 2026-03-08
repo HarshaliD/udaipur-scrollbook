@@ -167,7 +167,7 @@ export default function Index() {
       setTimeout(() => setShakeId(null), 800);
       // Boat sailing animation
       setBoatSailingId(id);
-      setTimeout(() => setBoatSailingId(null), 4500);
+      setTimeout(() => setBoatSailingId(null), 6500);
       // Sparkle
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
