@@ -105,6 +105,7 @@ function PolaroidCard({ src, label, rotation }: { src: string; label: string; ro
 }
 
 export default function Index() {
+  const [loaderDone, setLoaderDone] = useState(false);
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
