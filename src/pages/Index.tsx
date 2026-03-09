@@ -208,11 +208,11 @@ export default function Index() {
       {/* Hero */}
       <header className="relative flex flex-col items-center justify-center min-h-[70vh] px-4 text-center">
         <div className="text-5xl mb-6">🎒</div>
-        <h1 className="font-handwritten text-5xl sm:text-7xl md:text-8xl text-foreground leading-tight mb-4">
-          My Udaipur Memory Journey
+        <h1 style={{ fontFamily: "'Yatra One', cursive", fontSize: 'clamp(64px, 10vw, 96px)', color: '#3a2a1a' }} className="leading-tight mb-2">
+          Udaipur
         </h1>
-        <p className="font-serif text-lg sm:text-xl text-muted-foreground italic max-w-md">
-          A two-day trip through the City of Lakes
+        <p style={{ fontFamily: "'Caveat', cursive", fontStyle: 'italic', fontSize: '24px', color: '#e8804a', marginTop: '8px' }}>
+          Padhaaro Mare Des
         </p>
         <div className="mt-10 animate-bounce text-warm-orange text-2xl">↓</div>
       </header>

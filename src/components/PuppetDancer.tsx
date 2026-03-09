@@ -111,7 +111,7 @@ export default function PuppetDancer() {
       };
 
   return (
-    <div className="hidden md:block" style={containerStyle}>
+    <div className={`hidden md:block ${isSpinning ? "puppet-spin-animation" : ""}`} style={containerStyle}>
       <div
         style={{
           transform: isBig ? "" : jiggleTransform,
