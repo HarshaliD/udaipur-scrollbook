@@ -166,6 +166,8 @@ export default function Index() {
       // Shake animation
       setShakeId(id);
       setTimeout(() => setShakeId(null), 800);
+      // Puppet spin
+      window.dispatchEvent(new Event("puppet-spin"));
       // Boat sailing animation (only for city-palace)
       if (id === "city-palace") {
         setBoatSailingId(id);

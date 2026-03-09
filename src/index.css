@@ -352,3 +352,13 @@
   z-index: 20;
   border-radius: 2px;
 }
+
+/* Puppet spin on visited */
+@keyframes puppet-spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+.puppet-spin-animation {
+  animation: puppet-spin 0.8s ease-in-out;
+  transform-origin: top center;
+}
