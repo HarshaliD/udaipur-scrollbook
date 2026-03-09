@@ -200,7 +200,7 @@
   left: 50%;
   width: 60%;
   height: auto;
-  transform: translate(-50%, -50%) scale(0);
+  transform: translateX(-50%) scale(0);
   opacity: 0;
   pointer-events: none;
   z-index: 20;
