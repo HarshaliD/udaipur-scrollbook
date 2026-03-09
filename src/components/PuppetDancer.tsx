@@ -9,6 +9,7 @@ export default function PuppetDancer() {
   const [frameIndex, setFrameIndex] = useState(0);
   const [jiggleTransform, setJiggleTransform] = useState("");
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isSpinning, setIsSpinning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jiggleRef = useRef<ReturnType<typeof setInterval> | null>(null);
