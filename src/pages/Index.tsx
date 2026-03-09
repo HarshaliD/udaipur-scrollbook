@@ -4,8 +4,8 @@ import cityPalaceImg from "@/assets/city-palace.svg";
 import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import monsoonPalaceWindowImg from "@/assets/monsoon-palace-window.svg";
-import fatehSagarImg from "@/assets/fateh-sagar.svg";
-import oldCityWalkImg from "@/assets/old-city-walk.svg";
+import saheliyonImg from "@/assets/saheliyon-ki-bari.svg";
+import girlImg from "@/assets/girl.svg";
 import boatImg from "@/assets/boat.svg";
 import lotusImg from "@/assets/lotus.svg";
 import PuppetDancer from "@/components/PuppetDancer";
@@ -28,8 +28,7 @@ const LOCATIONS: LocationData[] = [
   { id: "city-palace", name: "City Palace", day: 1, image: cityPalaceImg, defaultDate: "2025-03-01" },
   { id: "jagdish-temple", name: "Jagdish Temple", day: 1, image: jagdishTempleImg, defaultDate: "2025-03-01" },
   { id: "monsoon-palace", name: "Sajjangarh Monsoon Palace", day: 2, image: monsoonPalaceImg, defaultDate: "2025-03-02" },
-  { id: "fateh-sagar", name: "Fateh Sagar Lake", day: 2, image: fatehSagarImg, defaultDate: "2025-03-02" },
-  { id: "old-city-walk", name: "Old City Walk", day: 2, image: oldCityWalkImg, defaultDate: "2025-03-02" },
+  { id: "saheliyon-ki-bari", name: "Saheliyon Ki Bari", day: 2, image: saheliyonImg, defaultDate: "2025-03-02" },
 ];
 
 const STORAGE_KEY = "udaipur-memories";
@@ -288,11 +287,7 @@ export default function Index() {
                     style={{
                       transform: `rotate(${isLeft ? -2 : 2}deg)`,
                       maxWidth: 340,
-                    filter: (loc.id === "city-palace" || loc.id === "jagdish-temple" || loc.id === "monsoon-palace")
-                        ? "drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                        : mem.visited
-                          ? "grayscale(0%) drop-shadow(0 4px 12px rgba(0,0,0,0.15))"
-                          : "grayscale(100%) drop-shadow(0 2px 6px rgba(0,0,0,0.08))",
+                    filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.15))",
                       transition: "filter 1.2s ease",
                     }}
                   >
@@ -330,6 +325,14 @@ export default function Index() {
                       src={lotusImg}
                       alt="Lotus"
                       className="lotus-animation"
+                    />
+                  )}
+                  {/* Girl overlay for saheliyon-ki-bari — visible when visited */}
+                  {loc.id === "saheliyon-ki-bari" && mem.visited && (
+                    <img
+                      src={girlImg}
+                      alt="Girl"
+                      className="girl-animation"
                     />
                   )}
                 </div>
