@@ -201,6 +201,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background paper-texture relative overflow-x-hidden">
+      {loading && <BookLoader onComplete={() => setLoading(false)} />}
       {showConfetti && <Confetti />}
       <PuppetDancer />
 
