@@ -98,9 +98,14 @@ function Confetti() {
 // Polaroid
 function PolaroidCard({ src, label, rotation }: { src: string; label: string; rotation: number }) {
   return (
-    <div className="polaroid inline-block" style={{ transform: `rotate(${rotation}deg)` }}>
-      <img src={src} alt={label} className="w-32 h-32 object-cover" />
-      <p className="text-xs text-center mt-1 font-handwritten text-ink">{label}</p>
+    <div
+      className="polaroid inline-block bg-white p-2 pb-8 rounded shadow-md transition-all duration-300 ease-out hover:-translate-y-1.5 hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] cursor-pointer"
+      style={{ transform: `rotate(${rotation}deg)` }}
+    >
+      <img src={src} alt={label} className="w-32 h-32 object-cover rounded-sm" />
+      <p style={{ fontFamily: "'Caveat', cursive", color: '#3a2a1a' }} className="text-sm text-center mt-2 absolute bottom-2 left-0 right-0">
+        {label}
+      </p>
     </div>
   );
 }
