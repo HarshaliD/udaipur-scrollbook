@@ -10,6 +10,7 @@ import boatImg from "@/assets/boat.svg";
 import lotusImg from "@/assets/lotus.svg";
 import PuppetDancer from "@/components/PuppetDancer";
 import BookLoader from "@/components/BookLoader";
+import PhotoStack from "@/components/PhotoStack";
 
 interface LocationData {
   id: string;
