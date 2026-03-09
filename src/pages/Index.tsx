@@ -9,6 +9,7 @@ import girlImg from "@/assets/girl.svg";
 import boatImg from "@/assets/boat.svg";
 import lotusImg from "@/assets/lotus.svg";
 import PuppetDancer from "@/components/PuppetDancer";
+import BookLoader from "@/components/BookLoader";
 
 interface LocationData {
   id: string;
@@ -105,6 +106,7 @@ function PolaroidCard({ src, label, rotation }: { src: string; label: string; ro
 }
 
 export default function Index() {
+  const [loaderDone, setLoaderDone] = useState(false);
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
   const [photos, setPhotos] = useState<Record<string, string[]>>({});
   const [sparkleId, setSparkleId] = useState<string | null>(null);
@@ -198,7 +200,9 @@ export default function Index() {
   const visitedCount = LOCATIONS.filter((loc) => memories[loc.id]?.visited).length;
 
   return (
-    <div className="min-h-screen bg-background paper-texture relative overflow-x-hidden">
+    <>
+      {!loaderDone && <BookLoader onComplete={() => setLoaderDone(true)} />}
+      <div className={`min-h-screen bg-background paper-texture relative overflow-x-hidden transition-opacity duration-500 ${loaderDone ? 'opacity-100' : 'opacity-0'}`}>
       {showConfetti && <Confetti />}
       <PuppetDancer />
 
@@ -451,5 +455,6 @@ export default function Index() {
         </div>
       </div>
     </div>
+    </>
   );
 }
