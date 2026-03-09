@@ -55,6 +55,16 @@ export default function PuppetDancer() {
     };
   }, []);
 
+  // Listen for custom spin event
+  useEffect(() => {
+    const handleSpin = () => {
+      setIsSpinning(true);
+      setTimeout(() => setIsSpinning(false), 800);
+    };
+    window.addEventListener("puppet-spin", handleSpin);
+    return () => window.removeEventListener("puppet-spin", handleSpin);
+  }, []);
+
   // Transition zones: 0–0.08 = big→small, 0.08–0.92 = small, 0.92–1 = small→big
   const isIntro = scrollProgress < 0.08;
   const isOutro = scrollProgress > 0.92;
