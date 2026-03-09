@@ -190,17 +190,17 @@
 
 /* Girl overlay animation for Saheliyon Ki Bari */
 @keyframes girl-appear {
-  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  0% { transform: translateX(-50%) scale(0); opacity: 0; }
+  100% { transform: translateX(-50%) scale(1); opacity: 1; }
 }
 
 .girl-animation {
   position: absolute;
-  top: 50%;
+  bottom: 10%;
   left: 50%;
   width: 60%;
   height: auto;
-  transform: translate(-50%, -50%) scale(0);
+  transform: translateX(-50%) scale(0);
   opacity: 0;
   pointer-events: none;
   z-index: 20;
