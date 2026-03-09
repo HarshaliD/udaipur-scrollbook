@@ -390,15 +390,8 @@ export default function Index() {
                       />
                     </label>
                     {locPhotos.length > 0 && (
-                      <div className="flex flex-wrap gap-4 mt-4">
-                        {locPhotos.map((src, pi) => (
-                          <PolaroidCard
-                            key={pi}
-                            src={src}
-                            label={loc.name}
-                            rotation={Math.random() * 6 - 3}
-                          />
-                        ))}
+                      <div className="mt-4">
+                        <PhotoStack photos={locPhotos} locationName={loc.name} />
                       </div>
                     )}
                   </div>
