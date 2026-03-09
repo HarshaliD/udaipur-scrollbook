@@ -200,7 +200,9 @@ export default function Index() {
   const visitedCount = LOCATIONS.filter((loc) => memories[loc.id]?.visited).length;
 
   return (
-    <div className="min-h-screen bg-background paper-texture relative overflow-x-hidden">
+    <>
+      {!loaderDone && <BookLoader onComplete={() => setLoaderDone(true)} />}
+      <div className={`min-h-screen bg-background paper-texture relative overflow-x-hidden transition-opacity duration-500 ${loaderDone ? 'opacity-100' : 'opacity-0'}`}>
       {showConfetti && <Confetti />}
       <PuppetDancer />
 
