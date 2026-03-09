@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import puppet1 from "@/assets/puppet1.svg";
 import puppet2 from "@/assets/puppet2.svg";
 import puppet3 from "@/assets/puppet3.svg";
@@ -9,6 +9,7 @@ export default function PuppetDancer() {
   const [frameIndex, setFrameIndex] = useState(0);
   const [jiggleTransform, setJiggleTransform] = useState("");
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isSpinning, setIsSpinning] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jiggleRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -52,6 +53,16 @@ export default function PuppetDancer() {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       if (jiggleRef.current) clearInterval(jiggleRef.current);
     };
+  }, []);
+
+  // Listen for custom spin event
+  useEffect(() => {
+    const handleSpin = () => {
+      setIsSpinning(true);
+      setTimeout(() => setIsSpinning(false), 800);
+    };
+    window.addEventListener("puppet-spin", handleSpin);
+    return () => window.removeEventListener("puppet-spin", handleSpin);
   }, []);
 
   // Transition zones: 0–0.08 = big→small, 0.08–0.92 = small, 0.92–1 = small→big
@@ -100,7 +111,7 @@ export default function PuppetDancer() {
       };
 
   return (
-    <div className="hidden md:block" style={containerStyle}>
+    <div className={`hidden md:block ${isSpinning ? "puppet-spin-animation" : ""}`} style={containerStyle}>
       <div
         style={{
           transform: isBig ? "" : jiggleTransform,
