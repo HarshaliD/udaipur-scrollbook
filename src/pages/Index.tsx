@@ -370,21 +370,26 @@ export default function Index() {
                 )}
 
                 {/* Memory card */}
-                <div className="bg-background border border-border rounded-lg p-4 shadow-sm space-y-4">
-                  {/* Photo upload */}
+                <div className="bg-background border border-border rounded-lg p-4 shadow-sm space-y-5">
+                  {/* Photo upload — polaroid drop zone */}
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-1">
-                      📸 Add photos
+                    <label
+                      className="flex flex-col items-center justify-center gap-2 py-6 px-4 border-2 border-dashed border-border rounded-xl bg-white cursor-pointer transition-colors duration-200 hover:border-[#e8804a]"
+                    >
+                      <span className="text-3xl">📷</span>
+                      <span style={{ fontFamily: "'Caveat', cursive", fontSize: '18px', color: '#888' }}>
+                        Drop your memories here
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => handlePhotoUpload(loc.id, e.target.files)}
+                        className="hidden"
+                      />
                     </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      onChange={(e) => handlePhotoUpload(loc.id, e.target.files)}
-                      className="block w-full text-sm text-muted-foreground file:mr-3 file:py-1 file:px-3 file:rounded-full file:border file:border-border file:text-sm file:font-medium file:bg-muted file:text-foreground hover:file:bg-accent cursor-pointer"
-                    />
                     {locPhotos.length > 0 && (
-                      <div className="flex flex-wrap gap-3 mt-3">
+                      <div className="flex flex-wrap gap-4 mt-4">
                         {locPhotos.map((src, pi) => (
                           <PolaroidCard
                             key={pi}
@@ -397,30 +402,50 @@ export default function Index() {
                     )}
                   </div>
 
-                  {/* Note */}
+                  {/* Note — diary paper style */}
                   <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-1">
-                      ✏️ Memory note
+                    <label style={{ fontFamily: "'Caveat', cursive", fontStyle: 'italic', fontSize: '14px', color: '#888' }} className="block mb-1">
+                      ✏️ What happened here...
                     </label>
                     <textarea
                       value={mem.note}
                       onChange={(e) => updateNote(loc.id, e.target.value)}
-                      placeholder="Write your memory here..."
-                      className="notepad-textarea w-full min-h-[84px] border border-border rounded-md bg-background px-3 py-2 text-sm font-serif text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-y"
+                      placeholder="What do you remember about this place..."
+                      className="diary-textarea w-full min-h-[112px] rounded-lg px-4 py-3 resize-y focus:outline-none"
+                      style={{
+                        fontFamily: "'Caveat', cursive",
+                        fontSize: '18px',
+                        color: '#3a2a1a',
+                        background: `#fefce8 repeating-linear-gradient(to bottom, transparent, transparent 27px, #e5e0d0 27px, #e5e0d0 28px)`,
+                        border: 'none',
+                        boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.06)',
+                        lineHeight: '28px',
+                      }}
                     />
                   </div>
 
-                  {/* Date */}
-                  <div>
-                    <label className="block text-sm font-medium text-muted-foreground mb-1">
-                      📅 Date
-                    </label>
-                    <input
-                      type="date"
-                      value={mem.date}
-                      onChange={(e) => updateDate(loc.id, e.target.value)}
-                      className="border border-border rounded-md bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
+                  {/* Date — rubber stamp style */}
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontFamily: "'Caveat', cursive", fontStyle: 'italic', fontSize: '14px', color: '#888' }}>
+                      Visited on
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm">📅</span>
+                      <input
+                        type="date"
+                        value={mem.date}
+                        onChange={(e) => updateDate(loc.id, e.target.value)}
+                        className="bg-transparent focus:outline-none"
+                        style={{
+                          fontFamily: "'Caveat', cursive",
+                          fontSize: '16px',
+                          color: '#3a2a1a',
+                          border: 'none',
+                          borderBottom: '1.5px solid #d4c9b0',
+                          padding: '2px 4px',
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
