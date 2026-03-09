@@ -9,6 +9,7 @@ import girlImg from "@/assets/girl.svg";
 import boatImg from "@/assets/boat.svg";
 import lotusImg from "@/assets/lotus.svg";
 import PuppetDancer from "@/components/PuppetDancer";
+import BookLoader from "@/components/BookLoader";
 
 interface LocationData {
   id: string;
@@ -111,6 +112,7 @@ export default function Index() {
   const [shakeId, setShakeId] = useState<string | null>(null);
   const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [loading, setLoading] = useState(true);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -199,6 +201,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background paper-texture relative overflow-x-hidden">
+      {loading && <BookLoader onComplete={() => setLoading(false)} />}
       {showConfetti && <Confetti />}
       <PuppetDancer />
 
