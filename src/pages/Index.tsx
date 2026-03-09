@@ -458,16 +458,10 @@ export default function Index() {
           {/* Photo collage */}
           {allVisited && Object.values(photos).flat().length > 0 && (
             <div className="flex flex-wrap justify-center gap-4 mb-8 max-w-lg mx-auto">
-              {Object.entries(photos).flatMap(([locId, urls]) =>
-                urls.map((src, i) => (
-                  <PolaroidCard
-                    key={`${locId}-${i}`}
-                    src={src}
-                    label={LOCATIONS.find((l) => l.id === locId)?.name || ""}
-                    rotation={Math.random() * 6 - 3}
-                  />
-                ))
-              )}
+              <PhotoStack
+                photos={Object.values(photos).flat()}
+                locationName="Udaipur Memories"
+              />
             </div>
           )}
 
