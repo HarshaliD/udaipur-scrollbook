@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import puppet1 from "@/assets/puppet1.svg";
 import puppet2 from "@/assets/puppet2.svg";
 import puppet3 from "@/assets/puppet3.svg";
