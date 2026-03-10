@@ -157,7 +157,7 @@ export default function PhotoStack({ photos, locationName }: PhotoStackProps) {
           onClick={closeLightbox}
         >
           <div
-            className="relative bg-white p-3 pb-10 rounded shadow-2xl max-w-[90vw] max-h-[90vh] z-[1001]"
+            className="relative bg-white p-3 pb-10 rounded shadow-2xl max-w-[90vw] max-h-[90vh] z-[10000]"
             onClick={(e) => e.stopPropagation()}
           >
             <img
