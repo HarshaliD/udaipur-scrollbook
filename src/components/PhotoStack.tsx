@@ -187,7 +187,7 @@ export default function PhotoStack({ photos, locationName }: PhotoStackProps) {
           )}
 
           <button
-            className="absolute top-4 right-4 text-white text-2xl hover:scale-110 transition-transform z-[1002]"
+            className="absolute top-4 right-4 text-white text-2xl hover:scale-110 transition-transform z-[10001]"
             onClick={closeLightbox}
           >✕</button>
         </div>
