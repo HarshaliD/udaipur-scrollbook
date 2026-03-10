@@ -152,12 +152,12 @@ export default function PhotoStack({ photos, locationName }: PhotoStackProps) {
       {/* Lightbox */}
       {lightboxIndex !== null && (
         <div
-          className="fixed inset-0 z-[1000] flex items-center justify-center animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center animate-fade-in"
           style={{ background: "rgba(0,0,0,0.85)" }}
           onClick={closeLightbox}
         >
           <div
-            className="relative bg-white p-3 pb-10 rounded shadow-2xl max-w-[90vw] max-h-[90vh] z-[1001]"
+            className="relative bg-white p-3 pb-10 rounded shadow-2xl max-w-[90vw] max-h-[90vh] z-[10000]"
             onClick={(e) => e.stopPropagation()}
           >
             <img
@@ -176,18 +176,18 @@ export default function PhotoStack({ photos, locationName }: PhotoStackProps) {
           {photos.length > 1 && (
             <>
               <button
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:scale-110 transition-transform z-[1002]"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:scale-110 transition-transform z-[10001]"
                 onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + photos.length) % photos.length); }}
               >‹</button>
               <button
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:scale-110 transition-transform z-[1002]"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:scale-110 transition-transform z-[10001]"
                 onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % photos.length); }}
               >›</button>
             </>
           )}
 
           <button
-            className="absolute top-4 right-4 text-white text-2xl hover:scale-110 transition-transform z-[1002]"
+            className="absolute top-4 right-4 text-white text-2xl hover:scale-110 transition-transform z-[10001]"
             onClick={closeLightbox}
           >✕</button>
         </div>
