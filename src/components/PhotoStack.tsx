@@ -152,7 +152,7 @@ export default function PhotoStack({ photos, locationName }: PhotoStackProps) {
       {/* Lightbox */}
       {lightboxIndex !== null && (
         <div
-          className="fixed inset-0 z-[1000] flex items-center justify-center animate-fade-in"
+          className="fixed inset-0 z-[9999] flex items-center justify-center animate-fade-in"
           style={{ background: "rgba(0,0,0,0.85)" }}
           onClick={closeLightbox}
         >
