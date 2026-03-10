@@ -10,9 +10,19 @@ export default function PuppetDancer() {
   const [jiggleTransform, setJiggleTransform] = useState("");
   const [scrollProgress, setScrollProgress] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
+  const [hiddenByLightbox, setHiddenByLightbox] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jiggleRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Hide puppet when lightbox is open
+  useEffect(() => {
+    const handler = (e: Event) => {
+      setHiddenByLightbox((e as CustomEvent).detail);
+    };
+    window.addEventListener("lightbox-toggle", handler);
+    return () => window.removeEventListener("lightbox-toggle", handler);
+  }, []);
 
   useEffect(() => {
     const randomTransform = () => {
