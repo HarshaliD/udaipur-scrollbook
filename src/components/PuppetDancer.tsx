@@ -120,6 +120,8 @@ export default function PuppetDancer() {
         transition: "width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out",
       };
 
+  if (hiddenByLightbox) return null;
+
   return (
     <div className={`hidden md:block ${isSpinning ? "puppet-spin-animation" : ""}`} style={containerStyle}>
       <div
