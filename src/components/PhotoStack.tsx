@@ -38,6 +38,11 @@ export default function PhotoStack({ photos, locationName }: PhotoStackProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const closeLightbox = useCallback(() => setLightboxIndex(null), []);
 
+  // Dispatch event to hide/show puppet when lightbox opens/closes
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("lightbox-toggle", { detail: lightboxIndex !== null }));
+  }, [lightboxIndex]);
+
   useEffect(() => {
     if (lightboxIndex === null) return;
     const handler = (e: KeyboardEvent) => {
