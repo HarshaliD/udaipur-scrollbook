@@ -180,7 +180,7 @@ export default function PhotoStack({ photos, locationName }: PhotoStackProps) {
                 onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + photos.length) % photos.length); }}
               >‹</button>
               <button
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:scale-110 transition-transform z-[1002]"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white text-4xl hover:scale-110 transition-transform z-[10001]"
                 onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % photos.length); }}
               >›</button>
             </>
