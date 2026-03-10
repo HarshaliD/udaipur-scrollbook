@@ -105,7 +105,7 @@ export default function PuppetDancer() {
         width: 120,
         height: 160,
         opacity: 1,
-        zIndex: 5,
+        zIndex: 10,
         pointerEvents: "none" as const,
         transition: "width 0.3s ease-out, height 0.3s ease-out, opacity 0.3s ease-out",
       };
