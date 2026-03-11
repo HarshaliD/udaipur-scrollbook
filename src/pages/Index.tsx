@@ -209,20 +209,22 @@ export default function Index() {
   const visitedCount = LOCATIONS.filter((loc) => memories[loc.id]?.visited).length;
 
   return (
-    <div className="min-h-screen bg-background paper-texture relative overflow-x-hidden">
+    <div className="min-h-screen relative overflow-x-hidden" style={{ backgroundColor: 'transparent' }}>
       {/* Kaman background */}
       <div
-        className="absolute inset-0 w-full pointer-events-none -z-10"
+        className="fixed inset-0 w-full h-full pointer-events-none z-0"
         style={{
           backgroundImage: `url(${kamanBg})`,
           backgroundRepeat: 'repeat-y',
           backgroundSize: '100% auto',
           backgroundPosition: 'top center',
-          opacity: 1 - scrollProgress * 0.8,
+          opacity: 0.15 + scrollProgress * 0.25,
           filter: `brightness(${0.3 + scrollProgress * 0.7})`,
           transition: 'filter 0.2s linear, opacity 0.2s linear',
         }}
       />
+      {/* Page content layer */}
+      <div className="relative z-[1] min-h-screen bg-background/90 paper-texture">
       {loading && <BookLoader onComplete={() => setLoading(false)} />}
       {showConfetti && <Confetti />}
       <PuppetDancer />
@@ -486,6 +488,7 @@ export default function Index() {
             {visitedCount}/{LOCATIONS.length} locations visited
           </p>
         </div>
+      </div>
       </div>
     </div>
   );
