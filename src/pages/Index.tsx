@@ -224,7 +224,7 @@ export default function Index() {
         }}
       />
       {/* Page content layer */}
-      <div className="relative z-[1] min-h-screen bg-background/90 paper-texture">
+      <div className="relative z-[1] min-h-screen bg-background/70 paper-texture">
       {loading && <BookLoader onComplete={() => setLoading(false)} />}
       {showConfetti && <Confetti />}
       <PuppetDancer />
