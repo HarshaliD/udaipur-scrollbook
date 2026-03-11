@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import kamanBg from "@/assets/kaman-bg.svg";
 
 import cityPalaceImg from "@/assets/city-palace.svg";
 import jagdishTempleImg from "@/assets/jagdish-temple.svg";
