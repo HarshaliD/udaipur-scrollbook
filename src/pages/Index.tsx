@@ -489,6 +489,7 @@ export default function Index() {
           </p>
         </div>
       </div>
+      </div>
     </div>
   );
 }
