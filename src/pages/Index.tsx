@@ -212,19 +212,21 @@ export default function Index() {
     <div className="min-h-screen relative overflow-x-hidden" style={{ backgroundColor: 'transparent' }}>
       {/* Kaman background */}
       <div
-        className="fixed inset-0 w-full h-full pointer-events-none z-0"
+        className="fixed inset-0 w-full h-full pointer-events-none z-0 flex items-start justify-center"
         style={{
-          backgroundImage: `url(${kamanBg})`,
-          backgroundRepeat: 'repeat-y',
-          backgroundSize: '100% auto',
-          backgroundPosition: 'top center',
-          opacity: 0.35 + scrollProgress * 0.45,
-          filter: `brightness(${0.4 + scrollProgress * 0.6})`,
+          opacity: 0.6 + scrollProgress * 0.4,
+          filter: `brightness(${0.15 + scrollProgress * 0.85})`,
           transition: 'filter 0.2s linear, opacity 0.2s linear',
         }}
-      />
+      >
+        <img
+          src={kamanBg}
+          alt=""
+          className="w-full h-auto min-h-full object-contain"
+        />
+      </div>
       {/* Page content layer */}
-      <div className="relative z-[1] min-h-screen bg-background/70 paper-texture">
+      <div className="relative z-[1] min-h-screen bg-background/60 paper-texture">
       {loading && <BookLoader onComplete={() => setLoading(false)} />}
       {showConfetti && <Confetti />}
       <PuppetDancer />
