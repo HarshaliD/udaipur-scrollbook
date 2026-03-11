@@ -218,8 +218,8 @@ export default function Index() {
           backgroundRepeat: 'repeat-y',
           backgroundSize: '100% auto',
           backgroundPosition: 'top center',
-          opacity: 0.15 + scrollProgress * 0.25,
-          filter: `brightness(${0.3 + scrollProgress * 0.7})`,
+          opacity: 0.35 + scrollProgress * 0.45,
+          filter: `brightness(${0.4 + scrollProgress * 0.6})`,
           transition: 'filter 0.2s linear, opacity 0.2s linear',
         }}
       />
