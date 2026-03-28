@@ -127,6 +127,32 @@ export default function Index() {
 
   const allVisited = LOCATIONS.every((loc) => memories[loc.id]?.visited);
 
+  // Check for Google Drive auth success
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'success') {
+      setIsAuthenticated(true);
+      fetch('/api/locations')
+        .then((res) => res.json())
+        .then((data: { name: string; photos: { id: string; url: string; name: string }[] }[]) => {
+          data.forEach((item) => {
+            const matched = LOCATIONS.find(
+              (loc) => loc.name.toLowerCase() === item.name.toLowerCase()
+            );
+            if (matched && item.photos.length > 0) {
+              const urls = item.photos.map((p) => p.url);
+              setPhotos((prev) => ({
+                ...prev,
+                [matched.id]: [...(prev[matched.id] || []), ...urls],
+              }));
+            }
+          });
+        })
+        .catch((err) => console.error('Failed to fetch Drive photos:', err));
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, []);
+
   // Save to localStorage on change
   useEffect(() => {
     saveMemories(memories);
@@ -241,6 +267,18 @@ export default function Index() {
         <p style={{ fontFamily: "'Caveat', cursive", fontStyle: 'italic', fontSize: '24px', color: '#e8804a', marginTop: '8px' }}>
           Padhaaro Mare Des
         </p>
+        {!isAuthenticated ? (
+          <a
+            href="/auth/google"
+            className="mt-6 inline-flex items-center gap-2 px-6 py-2 rounded-full border-2 border-warm-orange text-warm-orange font-handwritten text-lg hover:bg-warm-orange hover:text-primary-foreground transition-colors duration-300"
+          >
+            📂 Connect Google Drive Photos
+          </a>
+        ) : (
+          <span className="mt-6 inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground font-handwritten text-lg">
+            ✓ Drive Connected
+          </span>
+        )}
         <div className="mt-10 animate-bounce text-warm-orange text-2xl">↓</div>
       </header>
 
