@@ -120,6 +120,7 @@ export default function Index() {
   const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
