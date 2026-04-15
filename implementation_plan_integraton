@@ -1,0 +1,136 @@
+# Udaipur Scrollbook Backend (Phase 1) Implementation Plan
+
+## Goal Description
+Build a Node.js + Express + TypeScript backend for a scroll-based photo-sharing app. Phase 1 focuses on Google Sign-In, MongoDB storage using Mongoose, and Cloudinary for fast image processing and delivery. The architecture is explicitly designed to easily accommodate a background Google Drive backup in Phase 2 without structural changes to the primary upload flow.
+
+## User Review Required
+> [!IMPORTANT]
+> Please review the folder structure, API endpoints, and specifically how the Phase 2 Google Drive background hook is integrated into the upload flow to confirm this matches your expectations.
+
+## 1. Folder Structure
+```text
+src/
+├── config/
+│   ├── db.ts                # MongoDB connection setup
+│   └── cloudinary.ts        # Cloudinary configuration
+├── controllers/
+│   ├── authController.ts    # Handles Google login
+│   └── photoController.ts   # Handles photo upload and retrieval
+├── middlewares/
+│   ├── authMiddleware.ts    # JWT verification
+│   └── uploadMiddleware.ts  # Multer setup (in-memory buffer) for file uploads
+├── models/
+│   ├── User.ts              # User Mongoose schema
+│   └── Photo.ts             # Photo Mongoose schema (includes null Phase 2 Drive fields)
+├── routes/
+│   ├── authRoutes.ts        # /api/auth/*
+│   └── photoRoutes.ts       # /api/photos/*
+├── services/
+│   ├── cloudinaryService.ts # Cloudinary upload stream logic
+│   └── driveService.ts      # (Phase 2 placeholder) Stub for Drive background upload
+├── utils/
+│   └── jwt.ts               # Token generator variables
+├── app.ts                   # Express setup, CORS, and middleware wiring
+└── server.ts                # Server init and listening
+```
+
+## 2. API Endpoints
+
+### Auth Routes
+- `POST /api/auth/google`
+  - **Payload:** `{ token: "google_oauth_credential" }`
+  - **Purpose:** Verifies the Google token, finds or creates the User document in MongoDB, and returns a custom signed JWT string and user profile data.
+
+### Photo Routes
+- `GET /api/photos?placeSlug={slug}`
+  - **Purpose:** Retrieves a list of JSON photos for a specific place. Populates the `uploaderId` if needed, but primarily relies on the embedded strings (`uploaderName`, `uploaderAvatar`), sorting by `uploadedAt` sequentially (newest first).
+- `POST /api/photos`
+  - **Payload:** `multipart/form-data` with `file`, `placeSlug`, `placeName`.
+  - **Headers:** `Authorization: Bearer <JWT>`
+  - **Purpose:** Uploads the image to Cloudinary, saves metadata to MongoDB, returns the `Photo` document, and fires the Phase 2 Drive stub.
+
+## 3. Auth Flow (Google OAuth → JWT)
+1. **Frontend:** User clicks "Log in with Google". Google provides a credential JWT token.
+2. **Frontend:** Sends standard POST request with token to `/api/auth/google`.
+3. **Backend:** Uses `google-auth-library` to parse and verify the token. Extracts `sub` (googleId), `email`, `name`, and `picture` (avatar).
+4. **Database:** Queries MongoDB `User.findOne({ googleId })`. If no match, creates a new `User` document.
+5. **Backend:** Signs a brand new custom JWT containing the MongoDB `UserId`. 
+6. **Frontend:** Receives our JWT. Stores it (e.g., localStorage) and sends it as a Bearer token in the header of all subsequent API requests (like uploads).
+
+## 4. Upload Flow Step-by-Step
+1. **Client Action:** Authenticated user selects a file, inputs the location details, and hits submit.
+2. **Middleware Intercept:** `authMiddleware` verifies the JWT. `uploadMiddleware` (Multer, using `memoryStorage`) takes the incoming stream and holds the file as a `Buffer` in RAM.
+3. **Primary Storage:** `photoController.ts` extracts `req.file.buffer` and pushes it to `cloudinaryService.uploadImage(buffer)`.
+4. **Database Storage:** Upon getting the Cloudinary URL, the controller creates and saves the `Photo` Mongoose document using both the URL and the user details pulled from the JWT context.
+5. **Respond Fast:** The server immediately sends an HTTP 201 response back to the client with the new Photo object so the UI updates instantly.
+6. **Background Trigger (The hook):** Before or immediately after returning the response, the controller calls `driveService.uploadInBackground()`. In Phase 1, this function does absolutely nothing.
+
+## 5. Cloudinary Integration
+- Implemented in `services/cloudinaryService.ts`.
+- Because files are sent via `multer` as buffers, we'll use `cloudinary.uploader.upload_stream` to pipe the buffer directly to Cloudinary without writing files to local disk.
+- We will set upload tags/folders (e.g., `folder: "scrollbook/${placeSlug}"`).
+- On success, it returns the generated properties, specifically `secure_url`.
+
+## 6. Environment Variables List
+```env
+# Application configuration
+PORT=5000
+NODE_ENV=development
+
+# Database configuration
+MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/scrollbook
+
+# Local Security
+JWT_SECRET=super_secret_local_jwt_key
+JWT_EXPIRES_IN=30d
+
+# Google Auth Client
+GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
+
+# Cloudinary Setup
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+```
+
+## 7. Phase 2 (Drive Later) Implementation Hook
+Because we separated primary (critical path) and secondary (background) uploads, Phase 2 touches zero existing critical code. We just implement `driveService.ts`.
+
+It plugs perfectly into the bottom of `photoController.ts`:
+
+```typescript
+// IN CONTROLLER (Phase 1):
+export const uploadPhoto = async (req, res) => {
+  // 1. Upload to Cloudinary (blocks)
+  const cloudinaryUrl = await cloudinaryService.uploadImage(req.file.buffer);
+  
+  // 2. Save to Mongo (blocks)
+  const photo = await Photo.create({
+    cloudinaryUrl,
+    placeSlug: req.body.placeSlug,
+    /* ... uploader fields ... */
+  });
+  
+  // 3. Complete Request immediately
+  res.status(201).json(photo);
+
+  // 4. FIRE AND FORGET - Background Job (Phase 2)
+  driveService.backupToDriveInBackground(photo._id, req.file.buffer, req.body.placeSlug);
+};
+```
+
+And in `services/driveService.ts` we will eventually write:
+```typescript
+export const backupToDriveInBackground = async (photoId: string, imageBuffer: Buffer, placeSlug: string) => {
+  try {
+     // PHASE 2 Logic:
+     // - Upload Buffer to Google Drive
+     // - const photoDoc = await Photo.findById(photoId); null-check
+     // - photoDoc.driveUrl = driveUrl; photoDoc.driveFileId = fileId;
+     // - await photoDoc.save();
+  } catch (error) {
+     console.error("Drive Backup failed for photo", photoId, error);
+     // Note: Fails silently here. Cloudinary succeeded, so the frontend app keeps working!
+  }
+}
+```
