@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction, Express } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { verifyToken } from '../utils/jwt';
 
@@ -6,7 +6,6 @@ export interface AuthRequest extends Request {
   user?: {
     id: string;
   };
-  file?: Express.Multer.File;
 }
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction): void => {

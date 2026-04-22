@@ -1,19 +1,47 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import Photo from '../models/Photo';
+import Trip from '../models/Trip';
 import User from '../models/User';
-import { uploadImage } from '../services/cloudinaryService';
-import { backupToDriveInBackground } from '../services/driveService';
 import { AuthRequest } from '../middlewares/authMiddleware';
 
-export const getPhotosByPlace = async (req: Request, res: Response): Promise<void> => {
+// ── Helper: verify tripId exists and requester is a member ────────────────────
+async function resolveTripMember(
+  tripId: string,
+  userId: string,
+  res: Response
+): Promise<InstanceType<typeof Trip> | null> {
+  if (!tripId) {
+    res.status(400).json({ error: 'tripId is required.' });
+    return null;
+  }
+  const trip = await Trip.findById(tripId);
+  if (!trip) {
+    res.status(404).json({ error: 'Trip not found.' });
+    return null;
+  }
+  const isMember = trip.members.some((m) => m.toString() === userId);
+  if (!isMember) {
+    res.status(403).json({ error: 'Access denied. You are not a member of this trip.' });
+    return null;
+  }
+  return trip;
+}
+
+// ── GET /api/photos?tripId=&placeSlug= ───────────────────────────────────────
+export const getPhotosByPlace = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { placeSlug } = req.query;
-    if (!placeSlug) {
-      res.status(400).json({ error: 'placeSlug query parameter is required' });
+    const { tripId, placeSlug } = req.query as { tripId?: string; placeSlug?: string };
+    const userId = req.user!.id;
+
+    if (!tripId || !placeSlug) {
+      res.status(400).json({ error: 'tripId and placeSlug are required.' });
       return;
     }
 
-    const photos = await Photo.find({ placeSlug: placeSlug as string }).sort({ uploadedAt: -1 });
+    const trip = await resolveTripMember(tripId, userId, res);
+    if (!trip) return;
+
+    const photos = await Photo.find({ tripId, placeSlug }).sort({ uploadedAt: -1 });
     res.status(200).json(photos);
   } catch (error) {
     console.error('Get Photos Error:', error);
@@ -21,11 +49,21 @@ export const getPhotosByPlace = async (req: Request, res: Response): Promise<voi
   }
 };
 
-export const getAllPhotosGrouped = async (req: Request, res: Response): Promise<void> => {
+// ── GET /api/photos/all?tripId= ───────────────────────────────────────────────
+export const getAllPhotosGrouped = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    // Return a map of placeSlug -> cloudinaryUrl[] so the frontend can
-    // directly hydrate photos state without extra round-trips.
-    const photos = await Photo.find({}, 'placeSlug cloudinaryUrl uploadedAt').sort({ uploadedAt: -1 });
+    const { tripId } = req.query as { tripId?: string };
+    const userId = req.user!.id;
+
+    if (!tripId) {
+      res.status(400).json({ error: 'tripId is required.' });
+      return;
+    }
+
+    const trip = await resolveTripMember(tripId, userId, res);
+    if (!trip) return;
+
+    const photos = await Photo.find({ tripId }, 'placeSlug cloudinaryUrl uploadedAt').sort({ uploadedAt: -1 });
 
     const grouped: Record<string, string[]> = {};
     for (const p of photos) {
@@ -40,16 +78,19 @@ export const getAllPhotosGrouped = async (req: Request, res: Response): Promise<
   }
 };
 
+// ── POST /api/photos ──────────────────────────────────────────────────────────
+// The frontend uploads directly to Cloudinary and sends us only the resulting URL.
+// We never touch the image file — no Multer, no binary handling.
 export const uploadPhoto = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    if (!req.file || !req.file.buffer) {
-      res.status(400).json({ error: 'No image file provided' });
+    const { cloudinaryUrl, placeSlug, placeName, tripId } = req.body;
+
+    if (!cloudinaryUrl || typeof cloudinaryUrl !== 'string') {
+      res.status(400).json({ error: 'cloudinaryUrl is required.' });
       return;
     }
-
-    const { placeSlug, placeName } = req.body;
-    if (!placeSlug || !placeName) {
-      res.status(400).json({ error: 'placeSlug and placeName are required' });
+    if (!placeSlug || !placeName || !tripId) {
+      res.status(400).json({ error: 'placeSlug, placeName, and tripId are required.' });
       return;
     }
 
@@ -59,17 +100,19 @@ export const uploadPhoto = async (req: AuthRequest, res: Response): Promise<void
       return;
     }
 
+    // Verify membership before saving anything
+    const trip = await resolveTripMember(tripId, uploaderId, res);
+    if (!trip) return;
+
     const user = await User.findById(uploaderId);
     if (!user) {
       res.status(404).json({ error: 'Uploader user not found' });
       return;
     }
 
-    // 1. Upload to Cloudinary (blocks)
-    const cloudinaryUrl = await uploadImage(req.file.buffer, placeSlug);
-
-    // 2. Save to Mongo (blocks)
+    // Save photo record — URL comes from the user's own Cloudinary account
     const photo = await Photo.create({
+      tripId,
       cloudinaryUrl,
       placeSlug,
       placeName,
@@ -78,13 +121,9 @@ export const uploadPhoto = async (req: AuthRequest, res: Response): Promise<void
       uploaderId: user._id,
     });
 
-    // 3. Complete Request immediately
     res.status(201).json(photo);
-
-    // 4. FIRE AND FORGET - Background Job (Phase 2 stub)
-    backupToDriveInBackground(photo._id.toString(), req.file.buffer, placeSlug);
   } catch (error) {
     console.error('Upload Error:', error);
-    res.status(500).json({ error: 'Failed to upload photo' });
+    res.status(500).json({ error: 'Failed to save photo' });
   }
 };

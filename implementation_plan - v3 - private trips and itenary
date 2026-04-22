@@ -1,0 +1,62 @@
+# Private Groups & Itineraries Implementation Plan
+
+This document outlines the architecture, data flow, and step-by-step roadmap for upgrading Udaipur Scrollbook from a global journal into a **Private Trip Planner & Collaborative Journal**.
+
+## 1. Architectural Changes (Database)
+
+We will introduce a new core model to MongoDB called `Trip`. We will also upgrade our `Photo` model to be "Trip-Aware".
+
+### New Model: `Trip`
+This acts as the vault for a private group and holds the master schedule.
+*   **`name`**: e.g., "Monsoon Getaway 2026"
+*   **`adminId`**: Reference to the User who created it.
+*   **`members`**: Array of User IDs who have joined. The ultimate privacy gate lock.
+*   **`inviteCode`**: A randomly generated unique 6-character code (e.g., `XJ9K2L`) to easily share on WhatsApp.
+*   **`itinerary`**: An array of objects defining the chosen places and their order.
+    *   `placeSlug`, `placeName`, `order` (number), `plannedDate` (optional).
+
+### Updated Model: `Photo`
+*   **`tripId`**: (NEW) Reference to the specific Trip this photo belongs to.
+*   *Cloudinary Path update*: We will dynamically change the upload folder from `scrollbook/{placeSlug}` to `scrollbook/trips/{tripId}/{placeSlug}` to keep Cloudinary organized per group.
+
+---
+
+## 2. API Flow & Backend Roadmap
+
+We will create a new set of API routes to handle the Trip logic securely.
+
+*   **`POST /api/trips`**: Creates a new trip, sets the creator as Admin, generates an invite code.
+*   **`POST /api/trips/join`**: Accepts an `inviteCode`. If valid, adds the logged-in User to the `members` array.
+*   **`GET /api/trips`**: Fetches all trips where the user is a member (to populate their homepage).
+*   **`PUT /api/trips/:id/itinerary`**: Accepts a new array of places. Only the Admin (or authorized members) can save the re-ordered list.
+*   **`GET /api/trips/:id/photos`**: Retrieves photos. The server explicitly checks if the requester is in the `members` array before returning a single image.
+*   **`POST /api/trips/:id/photos`**: Securely uploads a photo specifically into this private trip vault.
+
+---
+
+## 3. Frontend Architecture
+
+### Seamless Frontend Integration (No Major Layout Changes)
+We will preserve your exact current UI and only augment it with minimal additions to support the new features:
+1.  **Lightweight Trip Module (Header/Modal)**: Instead of a new dashboard page, we will simply add a small, elegant top bar or modal on your existing Homepage. It will handle creating/joining trips and swapping between them seamlessly.
+2.  **Using Existing Places List for Numbered Ordering**: We will exclusively use the places you already have hardcoded (City Palace, Lake Pichola, etc.). We'll add a subtle interactive number (1, 2, 3) next to each existing place card so users can quickly tap to order them without changing the layout.
+3.  **Place-Locked Uploads**: The album view stays identical. However, under the hood, any photo uploaded will be securely pegged to the *Active Trip* so friends only see their own photos for those existing places.
+
+> [!CAUTION]
+> **Data Privacy Checkpoint:** We must write strict authentication middleware. If someone modifies their frontend URL to `/trip/123` but their User ID is not inside the `members` array of Trip `123`, the API must flatline the request with an HTTP 403 Forbidden.
+
+---
+
+## 4. Execution Steps
+
+Here is exactly how we will build it, step-by-step:
+
+1.  **Step 1: Database Foundation:** Create the `Trip.ts` Mongoose model and add `tripId` to the `Photo.ts` model.
+2.  **Step 2: Trip APIs & Middleware:** Build the creation, joining, and fetching logic ensuring strict `isMember` authorization.
+3.  **Step 3: Modify Upload Pipeline:** Update `cloudinaryService.ts` to accept `tripId` and upload to the new isolated folder structure.
+4.  **Step 4: Frontend UI Augmentation:** Add a minimal Create/Join Trip header/modal to the *existing* Homepage without breaking the current design.
+5.  **Step 5: Interactive Numbering:** Add the numbered selection system (1, 2, 3...) directly to the existing place cards.
+6.  **Step 6: Refactor Photo Galleries:** Connect the scoped API entirely to the frontend so albums are exclusively powered by private trip data.
+
+## User Review Required
+Please review the architecture—especially how the **Invite Code** works and the distinction of the **Admin** managing the itinerary list. Does this align perfectly with your vision for the app?

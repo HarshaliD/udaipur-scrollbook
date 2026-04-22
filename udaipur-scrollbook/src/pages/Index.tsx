@@ -6,22 +6,35 @@ import jagdishTempleImg from "@/assets/jagdish-temple.svg";
 import monsoonPalaceImg from "@/assets/monsoon-palace.svg";
 import monsoonPalaceWindowImg from "@/assets/monsoon-palace-window.svg";
 import saheliyonImg from "@/assets/saheliyon-ki-bari.svg";
+import fatehSagarImg from "@/assets/fateh-sagar.svg";
+import lakePicholaImg from "@/assets/lake-pichola.svg";
+import oldCityWalkImg from "@/assets/old-city-walk.svg";
 import girlImg from "@/assets/girl.svg";
 import boatImg from "@/assets/boat.svg";
 import lotusImg from "@/assets/lotus.svg";
 import PuppetDancer from "@/components/PuppetDancer";
 import BookLoader from "@/components/BookLoader";
 import PhotoStack from "@/components/PhotoStack";
+import ItineraryPlanner, { MASTER_LOCATIONS } from "@/components/ItineraryPlanner";
 
 // API + Auth helpers
 import {
   loginWithGoogle,
   fetchAllPhotosGrouped,
+  uploadToCloudinary,
   uploadPhoto as apiUploadPhoto,
+  updateMe as apiUpdateMe,
+  fetchMyTrips,
+  createTrip as apiCreateTrip,
+  joinTrip as apiJoinTrip,
+  updateItinerary as apiUpdateItinerary,
   ApiError,
+  ApiTrip,
+  IItineraryItem,
 } from "@/lib/api";
 import {
   saveAuth,
+  saveUser,
   getUser,
   getToken,
   clearAuth,
@@ -48,27 +61,23 @@ declare global {
   }
 }
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-interface LocationData {
-  id: string;
-  name: string;
-  day: number;
-  image: string;
-  defaultDate: string;
-}
+// ─── Image map: slug → imported SVG ──────────────────────────────────────────
+const LOCATION_IMAGES: Record<string, string> = {
+  "city-palace": cityPalaceImg,
+  "jagdish-temple": jagdishTempleImg,
+  "monsoon-palace": monsoonPalaceImg,
+  "saheliyon-ki-bari": saheliyonImg,
+  "fateh-sagar": fatehSagarImg,
+  "lake-pichola": lakePicholaImg,
+  "old-city-walk": oldCityWalkImg,
+};
 
+// ─── Memory data per location ─────────────────────────────────────────────────
 interface MemoryData {
   note: string;
   date: string;
   visited: boolean;
 }
-
-const LOCATIONS: LocationData[] = [
-  { id: "city-palace", name: "City Palace", day: 1, image: cityPalaceImg, defaultDate: "2025-03-01" },
-  { id: "jagdish-temple", name: "Jagdish Temple", day: 1, image: jagdishTempleImg, defaultDate: "2025-03-01" },
-  { id: "monsoon-palace", name: "Sajjangarh Monsoon Palace", day: 2, image: monsoonPalaceImg, defaultDate: "2025-03-02" },
-  { id: "saheliyon-ki-bari", name: "Saheliyon Ki Bari", day: 2, image: saheliyonImg, defaultDate: "2025-03-02" },
-];
 
 // ─── Google Client ID ──────────────────────────────────────────────────────────
 const GOOGLE_CLIENT_ID = "173841781207-pj22hccbk4777a5dtas5nicg4dpa36s9.apps.googleusercontent.com";
@@ -82,8 +91,8 @@ function loadMemories(): Record<string, MemoryData> {
     if (saved) return JSON.parse(saved);
   } catch { /* ignore parse errors */ }
   const initial: Record<string, MemoryData> = {};
-  LOCATIONS.forEach((loc) => {
-    initial[loc.id] = { note: "", date: loc.defaultDate, visited: false };
+  MASTER_LOCATIONS.forEach((loc) => {
+    initial[loc.placeSlug] = { note: "", date: "", visited: false };
   });
   return initial;
 }
@@ -149,27 +158,70 @@ export default function Index() {
   const [boatSailingId, setBoatSailingId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [loading, setLoading] = useState(true);
+  const handleLoadingComplete = useCallback(() => setLoading(false), []);
   const [user, setUser] = useState<StoredUser | null>(getUser);
   const [authLoading, setAuthLoading] = useState(false);
+
+  // ── Trip state ─────────────────────────────────────────────────────────────
+  const [trips, setTrips] = useState<ApiTrip[]>([]);
+  const [activeTrip, setActiveTrip] = useState<ApiTrip | null>(null);
+
+  // ── Trip modal state (create / join / itinerary) ───────────────────────────
+  const [showTripModal, setShowTripModal] = useState(false);
+  const [tripModalMode, setTripModalMode] = useState<"create" | "join" | "itinerary-new" | "itinerary-edit">("create");
+  const [tripInput, setTripInput] = useState("");
+  const [tripLoading, setTripLoading] = useState(false);
+  const [pendingTripName, setPendingTripName] = useState(""); // used during create flow
+
+  // ── Cloudinary setup modal ─────────────────────────────────────────────────
+  const [showCloudinaryModal, setShowCloudinaryModal] = useState(false);
+  const [cloudName, setCloudName] = useState("");
+  const [cloudPreset, setCloudPreset] = useState("");
+  const [cloudSaving, setCloudSaving] = useState(false);
+  const [cloudSuccess, setCloudSuccess] = useState(false);
+  const [hintCloudName, setHintCloudName] = useState(false);
+  const [hintCloudPreset, setHintCloudPreset] = useState(false);
+  // When a user tries to upload without credentials, we store the pending upload
+  const pendingUpload = useRef<{ id: string; files: FileList } | null>(null);
 
   const sectionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [visibleSections, setVisibleSections] = useState<Set<number>>(new Set());
   const [scrollProgress, setScrollProgress] = useState(0);
 
-  const allVisited = LOCATIONS.every((loc) => memories[loc.id]?.visited);
+  // ── Derive active locations from trip itinerary ────────────────────────────
+  const activeLocations: IItineraryItem[] = user && activeTrip?.itinerary
+    ? [...activeTrip.itinerary].sort((a, b) => a.order - b.order)
+    : !user
+      ? MASTER_LOCATIONS.map((loc, i) => ({ ...loc, order: i + 1 }))
+      : [];
 
-  // ── Load persisted photos from backend on mount ────────────────────────────
+  const allVisited = activeLocations.length > 0 && activeLocations.every(
+    (loc) => memories[loc.placeSlug]?.visited
+  );
+
+  // ── Load trips on login, restore last active trip ─────────────────────────
   useEffect(() => {
-    if (!getToken()) return; // not logged in — skip backend fetch
-    fetchAllPhotosGrouped()
-      .then((grouped) => {
-        setPhotos((prev) => ({ ...prev, ...grouped }));
+    if (!user) { setTrips([]); setActiveTrip(null); setPhotos({}); return; }
+    fetchMyTrips()
+      .then((myTrips) => {
+        setTrips(myTrips);
+        const savedTripId = localStorage.getItem("activeTrip");
+        const restored = myTrips.find((t) => t._id === savedTripId) ?? myTrips[0] ?? null;
+        setActiveTrip(restored);
       })
+      .catch(() => { /* non-fatal */ });
+  }, [user]);
+
+  // ── Load photos whenever activeTrip changes ────────────────────────────────
+  useEffect(() => {
+    if (!activeTrip) { setPhotos({}); return; }
+    localStorage.setItem("activeTrip", activeTrip._id);
+    fetchAllPhotosGrouped(activeTrip._id)
+      .then((grouped) => setPhotos(grouped))
       .catch((err: ApiError | Error) => {
-        // Non-fatal: user still sees locally-uploaded photos
-        console.warn("Could not load photos from server:", err.message);
+        console.warn("Could not load photos:", err.message);
       });
-  }, [user]); // re-run when user logs in
+  }, [activeTrip]);
 
   // ── Initialise Google Identity Services ───────────────────────────────────
   useEffect(() => {
@@ -181,8 +233,6 @@ export default function Index() {
         auto_select: false,
       });
     };
-
-    // GIS loads async — retry until available
     if (window.google) {
       init();
     } else {
@@ -193,6 +243,26 @@ export default function Index() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Render Official Google UI Button ──────────────────────────────────────
+  useEffect(() => {
+    if (user) return;
+    const interval = setInterval(() => {
+      const container = document.getElementById("google-login-btn-container");
+      if (container && window.google) {
+        // Only render if empty to avoid flicker
+        if (container.childElementCount === 0) {
+          window.google.accounts.id.renderButton(container, {
+            theme: "outline",
+            size: "large",
+            shape: "pill",
+          });
+        }
+        clearInterval(interval);
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, [user]);
 
   // ── Save memories to localStorage whenever they change ────────────────────
   useEffect(() => { saveMemories(memories); }, [memories]);
@@ -212,7 +282,7 @@ export default function Index() {
     );
     sectionRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
-  }, []);
+  }, [activeLocations]);
 
   // ── Scroll progress ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -230,11 +300,19 @@ export default function Index() {
     setAuthLoading(true);
     try {
       const { token, user: apiUser } = await loginWithGoogle(response.credential);
-      saveAuth(token, apiUser);
-      setUser(apiUser);
+      const stored: StoredUser = {
+        id: apiUser.id,
+        name: apiUser.name,
+        email: apiUser.email,
+        avatar: apiUser.avatar,
+        cloudinaryName: apiUser.cloudinaryName,
+        cloudinaryPreset: apiUser.cloudinaryPreset,
+      };
+      saveAuth(token, stored);
+      setUser(stored);
       toast({
         title: "Welcome, " + apiUser.name + "! 🎒",
-        description: "Your photos will now be saved to the cloud.",
+        description: "Your memories await.",
       });
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Login failed. Please try again.";
@@ -244,24 +322,114 @@ export default function Index() {
     }
   }
 
-  function triggerGoogleLogin() {
-    if (!window.google) {
-      toast({
-        title: "Google not ready",
-        description: "Please wait a moment and try again.",
-        variant: "destructive",
-      });
-      return;
-    }
-    window.google.accounts.id.prompt();
-  }
+  // triggerGoogleLogin has been removed in favor of renderButton
 
   function handleLogout() {
     clearAuth();
     setUser(null);
     setPhotos({});
+    setTrips([]);
+    setActiveTrip(null);
+    localStorage.removeItem("activeTrip");
     window.google?.accounts.id.cancel();
     toast({ title: "Logged out", description: "See you next time! 👋" });
+  }
+
+  // ── Cloudinary setup handler ───────────────────────────────────────────────
+  async function handleSaveCloudinary() {
+    if (!cloudName.trim() || !cloudPreset.trim()) return;
+    setCloudSaving(true);
+    try {
+      const updatedUser = await apiUpdateMe(cloudName.trim(), cloudPreset.trim());
+      const stored: StoredUser = {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        avatar: updatedUser.avatar,
+        cloudinaryName: updatedUser.cloudinaryName,
+        cloudinaryPreset: updatedUser.cloudinaryPreset,
+      };
+      saveUser(stored);
+      setUser(stored);
+      toast({ title: "Cloudinary linked! ☁️", description: "You can now upload photos." });
+
+      setCloudSuccess(true);
+      setTimeout(() => {
+        setCloudSuccess(false);
+        setShowCloudinaryModal(false);
+        // If user was trying to upload, resume it
+        if (pendingUpload.current) {
+          const { id, files } = pendingUpload.current;
+          pendingUpload.current = null;
+          handlePhotoUpload(id, files, stored);
+        }
+      }, 1500);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Failed to save credentials.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setCloudSaving(false);
+    }
+  }
+
+  // ── Trip handlers ─────────────────────────────────────────────────────────
+  async function handleCreateTripWithItinerary(itinerary: IItineraryItem[]) {
+    setTripLoading(true);
+    try {
+      const trip = await apiCreateTrip(pendingTripName, itinerary);
+      toast({ title: `Trip "${trip.name}" created! 🎒`, description: `Invite code: ${trip.inviteCode}` });
+      setTrips((prev) => {
+        const exists = prev.find((t) => t._id === trip._id);
+        return exists ? prev : [trip, ...prev];
+      });
+      setActiveTrip(trip);
+      setShowTripModal(false);
+      setPendingTripName("");
+      setTripInput("");
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Something went wrong.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setTripLoading(false);
+    }
+  }
+
+  async function handleJoinTrip() {
+    if (!tripInput.trim()) return;
+    setTripLoading(true);
+    try {
+      const trip = await apiJoinTrip(tripInput.trim());
+      toast({ title: `Joined "${trip.name}"! 🎉`, description: "Welcome to the group." });
+      setTrips((prev) => {
+        const exists = prev.find((t) => t._id === trip._id);
+        return exists ? prev : [trip, ...prev];
+      });
+      setActiveTrip(trip);
+      setShowTripModal(false);
+      setTripInput("");
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Something went wrong.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setTripLoading(false);
+    }
+  }
+
+  async function handleSaveItinerary(itinerary: IItineraryItem[]) {
+    if (!activeTrip) return;
+    setTripLoading(true);
+    try {
+      const updated = await apiUpdateItinerary(activeTrip._id, itinerary);
+      setActiveTrip(updated);
+      setTrips((prev) => prev.map((t) => t._id === updated._id ? updated : t));
+      toast({ title: "Itinerary saved! 🗺️", description: "Your journey map is updated." });
+      setShowTripModal(false);
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Something went wrong.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setTripLoading(false);
+    }
   }
 
   // ── Visited / memory handlers ─────────────────────────────────────────────
@@ -269,7 +437,7 @@ export default function Index() {
     (id: string) => {
       setMemories((prev) => {
         const updated = { ...prev, [id]: { ...prev[id], visited: true } };
-        const nowAllVisited = LOCATIONS.every((loc) => updated[loc.id]?.visited);
+        const nowAllVisited = activeLocations.every((loc) => updated[loc.placeSlug]?.visited);
         if (nowAllVisited && !allVisited) {
           setShowConfetti(true);
           setTimeout(() => setShowConfetti(false), 4000);
@@ -286,7 +454,7 @@ export default function Index() {
       setSparkleId(id);
       setTimeout(() => setSparkleId(null), 800);
     },
-    [allVisited]
+    [allVisited, activeLocations]
   );
 
   const updateNote = useCallback(
@@ -301,31 +469,37 @@ export default function Index() {
 
   // ── Photo upload ──────────────────────────────────────────────────────────
   const handlePhotoUpload = useCallback(
-    async (id: string, files: FileList | null) => {
+    async (id: string, files: FileList | null, overrideUser?: StoredUser) => {
       if (!files || files.length === 0) return;
-
-      const loc = LOCATIONS.find((l) => l.id === id);
-      if (!loc) return;
-
-      if (!user) {
-        // Offline mode: store as blob URL (not persisted across sessions)
-        const urls = Array.from(files).map((f) => URL.createObjectURL(f));
-        setPhotos((prev) => ({ ...prev, [id]: [...(prev[id] || []), ...urls] }));
-        toast({
-          title: "Photo added locally 📷",
-          description: "Log in to save photos to the cloud permanently.",
-        });
+      if (!activeTrip) {
+        toast({ title: "No active trip", description: "Create or join a trip first.", variant: "destructive" });
         return;
       }
 
-      // Online mode: upload to backend (Cloudinary)
+      const currentUser = overrideUser ?? user;
+
+      // Guard: must have Cloudinary credentials
+      if (!currentUser?.cloudinaryName || !currentUser?.cloudinaryPreset) {
+        pendingUpload.current = { id, files };
+        setCloudName(currentUser?.cloudinaryName ?? "");
+        setCloudPreset(currentUser?.cloudinaryPreset ?? "");
+        setShowCloudinaryModal(true);
+        return;
+      }
+
+      const loc = MASTER_LOCATIONS.find((l) => l.placeSlug === id);
+      if (!loc) return;
+
       setUploadingId(id);
       const successUrls: string[] = [];
       const errors: string[] = [];
 
       for (const file of Array.from(files)) {
         try {
-          const photo = await apiUploadPhoto(file, loc.id, loc.name);
+          // Step 1: browser → user's Cloudinary
+          const url = await uploadToCloudinary(file, currentUser.cloudinaryName, currentUser.cloudinaryPreset);
+          // Step 2: backend saves the URL
+          const photo = await apiUploadPhoto(url, loc.placeSlug, loc.placeName, activeTrip._id);
           successUrls.push(photo.cloudinaryUrl);
         } catch (err) {
           const msg = err instanceof ApiError ? err.message : "Unknown upload error";
@@ -339,7 +513,7 @@ export default function Index() {
         setPhotos((prev) => ({ ...prev, [id]: [...(prev[id] || []), ...successUrls] }));
         toast({
           title: `${successUrls.length} photo${successUrls.length > 1 ? "s" : ""} saved! ✨`,
-          description: "Your memories are safely stored in the cloud.",
+          description: "Your memories are safely stored.",
         });
       }
 
@@ -351,13 +525,13 @@ export default function Index() {
         });
       }
     },
-    [user, toast]
+    [activeTrip, user, toast]
   );
 
   // ── Derived ───────────────────────────────────────────────────────────────
   const pathTotalLength = 1800;
   const pathDrawn = pathTotalLength * scrollProgress;
-  const visitedCount = LOCATIONS.filter((loc) => memories[loc.id]?.visited).length;
+  const visitedCount = activeLocations.filter((loc) => memories[loc.placeSlug]?.visited).length;
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
@@ -376,7 +550,7 @@ export default function Index() {
 
       {/* Page content layer */}
       <div className="relative z-[1] min-h-screen bg-background/60 paper-texture">
-        {loading && <BookLoader onComplete={() => setLoading(false)} />}
+        {loading && <BookLoader onComplete={handleLoadingComplete} />}
         {showConfetti && <Confetti />}
         <PuppetDancer />
 
@@ -395,16 +569,16 @@ export default function Index() {
 
           {/* Auth buttons */}
           {!user ? (
-            <button
-              id="google-login-btn"
-              onClick={triggerGoogleLogin}
-              disabled={authLoading}
-              className="mt-6 inline-flex items-center gap-2 px-6 py-2 rounded-full border-2 border-warm-orange text-warm-orange font-handwritten text-lg hover:bg-warm-orange hover:text-primary-foreground transition-colors duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {authLoading ? "⏳ Signing in..." : "🔑 Sign in with Google"}
-            </button>
+            <div className="mt-6 flex flex-col items-center">
+              <div id="google-login-btn-container" className="h-10 min-w-[200px] flex justify-center"></div>
+              {authLoading && (
+                <span className="mt-3 text-sm text-muted-foreground font-handwritten" style={{ fontSize: "16px" }}>
+                  ⏳ Authenticating...
+                </span>
+              )}
+            </div>
           ) : (
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-6 flex items-center gap-3 flex-wrap justify-center">
               {user.avatar && (
                 <img
                   src={user.avatar}
@@ -416,12 +590,392 @@ export default function Index() {
                 ✓ {user.name}
               </span>
               <button
+                onClick={() => setShowCloudinaryModal(true)}
+                className="px-4 py-1.5 text-sm rounded-full border border-warm-orange text-warm-orange hover:bg-warm-orange hover:text-white transition-colors duration-200 font-handwritten"
+              >
+                ☁️ Archive Settings
+              </button>
+              <button
                 id="logout-btn"
                 onClick={handleLogout}
                 className="px-4 py-1.5 text-sm rounded-full border border-muted-foreground text-muted-foreground hover:border-destructive hover:text-destructive transition-colors duration-200 font-handwritten"
               >
                 Logout
               </button>
+            </div>
+          )}
+
+          {/* Trip gate bar — only shown when logged in */}
+          {user && (
+            <div className="mt-5 flex flex-col items-center gap-2">
+              {!activeTrip ? (
+                <>
+                  <p style={{ fontFamily: "'Caveat', cursive", fontSize: "17px", color: "#888" }}>
+                    Create or Join a Trip to get started
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      id="create-trip-btn"
+                      onClick={() => { setTripModalMode("create"); setShowTripModal(true); }}
+                      className="px-5 py-2 rounded-full border-2 border-warm-orange text-warm-orange font-handwritten text-base hover:bg-warm-orange hover:text-primary-foreground transition-colors duration-200"
+                    >
+                      ✈️ Create Trip
+                    </button>
+                    <button
+                      id="join-trip-btn"
+                      onClick={() => { setTripModalMode("join"); setShowTripModal(true); }}
+                      className="px-5 py-2 rounded-full border-2 border-muted-foreground text-muted-foreground font-handwritten text-base hover:border-warm-orange hover:text-warm-orange transition-colors duration-200"
+                    >
+                      🔗 Join Trip
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="flex items-center gap-2 flex-wrap justify-center">
+                  <span className="px-4 py-1.5 rounded-full bg-accent text-accent-foreground font-handwritten text-base">
+                    🎒 {activeTrip.name}
+                  </span>
+                  <span className="text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded">
+                    Code: {activeTrip.inviteCode}
+                  </span>
+                  <button
+                    id="edit-itinerary-btn"
+                    onClick={() => { setTripModalMode("itinerary-edit"); setShowTripModal(true); }}
+                    className="text-xs px-3 py-1 rounded-full border border-muted-foreground text-muted-foreground hover:border-warm-orange hover:text-warm-orange transition-colors font-handwritten"
+                  >
+                    🗺️ Edit Itinerary
+                  </button>
+                  {trips.length > 1 && (
+                    <select
+                      id="trip-switcher"
+                      className="text-sm rounded-full border border-border px-3 py-1 bg-background font-handwritten"
+                      value={activeTrip._id}
+                      onChange={(e) => {
+                        const t = trips.find((x) => x._id === e.target.value);
+                        if (t) setActiveTrip(t);
+                      }}
+                    >
+                      {trips.map((t) => (
+                        <option key={t._id} value={t._id}>{t.name}</option>
+                      ))}
+                    </select>
+                  )}
+                  <button
+                    id="new-trip-btn"
+                    onClick={() => { setTripModalMode("create"); setShowTripModal(true); }}
+                    className="text-xs px-3 py-1 rounded-full border border-muted-foreground text-muted-foreground hover:border-warm-orange hover:text-warm-orange transition-colors font-handwritten"
+                  >
+                    + New Trip
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Trip Modal ──────────────────────────────────────────────────── */}
+          {showTripModal && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+              onClick={() => setShowTripModal(false)}
+            >
+              <div
+                className="bg-background rounded-2xl p-8 shadow-2xl flex flex-col gap-4 w-full max-w-sm mx-4 max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* ── Step 1: Name a trip (create mode) ── */}
+                {tripModalMode === "create" && (
+                  <>
+                    <h2 style={{ fontFamily: "'Caveat', cursive", fontSize: "28px", color: "#3a2a1a" }}>
+                      ✈️ Create a New Trip
+                    </h2>
+                    <input
+                      id="trip-input"
+                      autoFocus
+                      type="text"
+                      value={tripInput}
+                      onChange={(e) => setTripInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && tripInput.trim()) {
+                          setPendingTripName(tripInput.trim());
+                          setTripModalMode("itinerary-new");
+                        }
+                      }}
+                      placeholder="Trip name (e.g. Monsoon 2026)"
+                      className="w-full border border-border rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-warm-orange"
+                      style={{ fontFamily: "'Caveat', cursive", fontSize: "18px" }}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        id="trip-next-btn"
+                        onClick={() => {
+                          if (!tripInput.trim()) return;
+                          setPendingTripName(tripInput.trim());
+                          setTripModalMode("itinerary-new");
+                        }}
+                        disabled={!tripInput.trim()}
+                        className="flex-1 py-2 rounded-full bg-warm-orange text-primary-foreground font-handwritten text-lg hover:opacity-90 transition disabled:opacity-50"
+                      >
+                        Next → Pick Places
+                      </button>
+                      <button
+                        onClick={() => { setShowTripModal(false); setTripInput(""); }}
+                        className="px-4 py-2 rounded-full border border-muted-foreground text-muted-foreground font-handwritten hover:border-destructive hover:text-destructive transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <button
+                      className="text-sm text-muted-foreground underline underline-offset-2 font-handwritten"
+                      onClick={() => setTripModalMode("join")}
+                    >
+                      Have an invite code? Join a trip →
+                    </button>
+                  </>
+                )}
+
+                {/* ── Step 2: Itinerary planner for brand-new trip ── */}
+                {tripModalMode === "itinerary-new" && (
+                  <>
+                    <div>
+                      <h2 style={{ fontFamily: "'Caveat', cursive", fontSize: "26px", color: "#3a2a1a" }}>
+                        🗺️ Plan Your Itinerary
+                      </h2>
+                      <p style={{ fontFamily: "'Caveat', cursive", fontSize: "15px", color: "#888" }}>
+                        for <strong>{pendingTripName}</strong>
+                      </p>
+                    </div>
+                    <ItineraryPlanner
+                      initial={[]}
+                      onSave={handleCreateTripWithItinerary}
+                      onCancel={() => setTripModalMode("create")}
+                      isSaving={tripLoading}
+                    />
+                  </>
+                )}
+
+                {/* ── Join a trip ── */}
+                {tripModalMode === "join" && (
+                  <>
+                    <h2 style={{ fontFamily: "'Caveat', cursive", fontSize: "28px", color: "#3a2a1a" }}>
+                      🔗 Join a Trip
+                    </h2>
+                    <input
+                      id="join-input"
+                      autoFocus
+                      type="text"
+                      value={tripInput}
+                      onChange={(e) => setTripInput(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleJoinTrip()}
+                      placeholder="Enter invite code"
+                      className="w-full border border-border rounded-lg px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-warm-orange"
+                      style={{ fontFamily: "'Caveat', cursive", fontSize: "18px" }}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        id="join-submit-btn"
+                        onClick={handleJoinTrip}
+                        disabled={tripLoading || !tripInput.trim()}
+                        className="flex-1 py-2 rounded-full bg-warm-orange text-primary-foreground font-handwritten text-lg hover:opacity-90 transition disabled:opacity-50"
+                      >
+                        {tripLoading ? "⏳ Joining..." : "Join"}
+                      </button>
+                      <button
+                        onClick={() => { setShowTripModal(false); setTripInput(""); }}
+                        className="px-4 py-2 rounded-full border border-muted-foreground text-muted-foreground font-handwritten hover:border-destructive hover:text-destructive transition"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <button
+                      className="text-sm text-muted-foreground underline underline-offset-2 font-handwritten"
+                      onClick={() => setTripModalMode("create")}
+                    >
+                      Don't have a code? Create a new trip →
+                    </button>
+                  </>
+                )}
+
+                {/* ── Edit existing itinerary ── */}
+                {tripModalMode === "itinerary-edit" && activeTrip && (
+                  <>
+                    <div>
+                      <h2 style={{ fontFamily: "'Caveat', cursive", fontSize: "26px", color: "#3a2a1a" }}>
+                        🗺️ Edit Itinerary
+                      </h2>
+                      <p style={{ fontFamily: "'Caveat', cursive", fontSize: "15px", color: "#888" }}>
+                        {activeTrip.name}
+                      </p>
+                    </div>
+                    <ItineraryPlanner
+                      initial={activeTrip.itinerary}
+                      onSave={handleSaveItinerary}
+                      onCancel={() => setShowTripModal(false)}
+                      isSaving={tripLoading}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ── Cloudinary Setup Modal ─────────────────────────────────────── */}
+          {showCloudinaryModal && (
+            <div
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+              onClick={() => { setShowCloudinaryModal(false); pendingUpload.current = null; }}
+            >
+              <div
+                className="bg-[#fcfaf5] rounded-3xl p-8 shadow-2xl flex flex-col gap-6 w-full max-w-md mx-4 relative overflow-hidden"
+                style={{
+                  backgroundImage: "radial-gradient(#e5e0d0 1px, transparent 1px)",
+                  backgroundSize: "20px 20px",
+                  boxShadow: "inset 0 0 40px rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.2)",
+                  border: "1px solid #e5e0d0"
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {cloudSuccess ? (
+                  <div className="flex flex-col items-center justify-center py-10 animate-in zoom-in duration-300">
+                    <div className="w-24 h-24 rounded-full bg-warm-orange flex items-center justify-center shadow-lg mb-4 text-white">
+                      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                    <h2 style={{ fontFamily: "'Caveat', cursive", fontSize: "32px", color: "#3a2a1a" }}>
+                      Your Archive is ready!
+                    </h2>
+                    <p style={{ fontFamily: "'Caveat', cursive", fontSize: "18px", color: "#888" }}>
+                      Resuming your journey...
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div className="text-center">
+                      <h2 style={{ fontFamily: "'Yatra One', cursive", fontSize: "28px", color: "#3a2a1a" }}>
+                        ☁️ Set Up Your Pocket Archive
+                      </h2>
+                      <p style={{ fontFamily: "'Caveat', cursive", fontSize: "18px", color: "#888", marginTop: 4 }}>
+                        Store your memories in your own personal vault.
+                      </p>
+                    </div>
+
+                    {/* Step guide — "Merchant's Guide" style */}
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-start gap-3 bg-white/70 p-3 rounded-xl border border-warm-orange/20 shadow-sm relative overflow-hidden">
+                        <div className="w-6 h-6 rounded-full bg-warm-orange text-white flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-sm z-10" style={{ fontFamily: "'Caveat', cursive" }}>1</div>
+                        <div className="z-10">
+                          <p style={{ fontFamily: "'Caveat', cursive", fontSize: "17px", color: "#3a2a1a", leading: "tight" }}>
+                            Create a free account at Cloudinary
+                          </p>
+                          <a
+                            href="https://cloudinary.com/console"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-2 inline-flex items-center gap-1 px-4 py-1.5 rounded-full bg-warm-orange/10 text-warm-orange hover:bg-warm-orange hover:text-white transition-colors text-sm font-handwritten"
+                          >
+                            Open Dashboard ↗
+                          </a>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3 bg-white/70 p-3 rounded-xl border border-warm-orange/20 shadow-sm">
+                        <div className="w-6 h-6 rounded-full bg-warm-orange text-white flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-sm" style={{ fontFamily: "'Caveat', cursive" }}>2</div>
+                        <p style={{ fontFamily: "'Caveat', cursive", fontSize: "17px", color: "#3a2a1a" }}>
+                          Copy your <strong>Cloud Name</strong> from the top of your Dashboard homepage.
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-3 bg-white/70 p-3 rounded-xl border border-warm-orange/20 shadow-sm">
+                        <div className="w-6 h-6 rounded-full bg-warm-orange text-white flex items-center justify-center flex-shrink-0 text-sm font-bold shadow-sm" style={{ fontFamily: "'Caveat', cursive" }}>3</div>
+                        <p style={{ fontFamily: "'Caveat', cursive", fontSize: "17px", color: "#3a2a1a", leading: "tight" }}>
+                          Go to <strong>Settings → Upload → Upload Presets</strong>. Click "Add upload preset", set Signing Mode to <strong>Unsigned</strong>, save, and copy its name.
+                        </p>
+                      </div>
+                    </div>
+
+                    <hr className="border-border my-2" />
+
+                    <div className="flex flex-col gap-4">
+                      {/* Cloud Name Input */}
+                      <div>
+                        <label style={{ fontFamily: "'Caveat', cursive", fontSize: "16px", color: "#555", fontWeight: "bold" }} className="block mb-1">
+                          Cloud Name
+                        </label>
+                        <input
+                          id="cloudinary-name-input"
+                          type="text"
+                          value={cloudName}
+                          onChange={(e) => setCloudName(e.target.value)}
+                          placeholder="e.g. dxyz12345"
+                          className="w-full border-2 border-border/80 bg-white/90 rounded-lg px-4 py-2 text-base focus:outline-none focus:border-warm-orange transition-colors"
+                          style={{ fontFamily: "'Caveat', cursive", fontSize: "18px" }}
+                        />
+                        <div className="mt-1">
+                          <button
+                            onClick={() => setHintCloudName(!hintCloudName)}
+                            className="text-xs text-muted-foreground flex items-center gap-1 hover:text-warm-orange transition-colors"
+                            style={{ fontFamily: "'Caveat', cursive", fontSize: "14px" }}
+                          >
+                            <span>{hintCloudName ? "▼" : "▶"}</span> How do I find this?
+                          </button>
+                          {hintCloudName && (
+                            <p className="text-xs text-muted-foreground mt-1 ml-4 animate-in fade-in" style={{ fontFamily: "'Caveat', cursive", fontSize: "14px" }}>
+                              This is shown prominently at the top of your Cloudinary dashboard homepage.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Upload Preset Input */}
+                      <div>
+                        <label style={{ fontFamily: "'Caveat', cursive", fontSize: "16px", color: "#555", fontWeight: "bold" }} className="block mb-1">
+                          Upload Preset Name
+                        </label>
+                        <input
+                          id="cloudinary-preset-input"
+                          type="text"
+                          value={cloudPreset}
+                          onChange={(e) => setCloudPreset(e.target.value)}
+                          placeholder="e.g. scrollbook_unsigned"
+                          className="w-full border-2 border-border/80 bg-white/90 rounded-lg px-4 py-2 text-base focus:outline-none focus:border-warm-orange transition-colors"
+                          style={{ fontFamily: "'Caveat', cursive", fontSize: "18px" }}
+                        />
+                        <div className="mt-1">
+                          <button
+                            onClick={() => setHintCloudPreset(!hintCloudPreset)}
+                            className="text-xs text-muted-foreground flex items-center gap-1 hover:text-warm-orange transition-colors"
+                            style={{ fontFamily: "'Caveat', cursive", fontSize: "14px" }}
+                          >
+                            <span>{hintCloudPreset ? "▼" : "▶"}</span> How do I find this?
+                          </button>
+                          {hintCloudPreset && (
+                            <p className="text-xs text-muted-foreground mt-1 ml-4 animate-in fade-in" style={{ fontFamily: "'Caveat', cursive", fontSize: "14px" }}>
+                              Found in Settings ⚙️ → Upload → Upload Presets. Make sure it says "Unsigned".
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-2">
+                      <button
+                        onClick={() => { setShowCloudinaryModal(false); pendingUpload.current = null; }}
+                        className="px-5 py-2.5 rounded-full border-2 border-border text-muted-foreground font-handwritten hover:border-destructive hover:text-destructive transition text-lg"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        id="save-cloudinary-btn"
+                        onClick={handleSaveCloudinary}
+                        disabled={cloudSaving || !cloudName.trim() || !cloudPreset.trim()}
+                        className="flex-1 py-2.5 rounded-full bg-warm-orange text-white font-handwritten text-xl hover:opacity-90 transition disabled:opacity-50 shadow-md"
+                      >
+                        {cloudSaving ? "⏳ Archiving..." : "Save & Continue →"}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           )}
 
@@ -448,17 +1002,41 @@ export default function Index() {
             <circle cx="16" cy={Math.min(pathDrawn, pathTotalLength)} r="6" fill="hsl(20, 76%, 60%)" style={{ transition: "cy 0.1s linear" }} />
           </svg>
 
+          {/* Empty state — logged in but no trip / no itinerary */}
+          {user && !activeTrip && (
+            <div className="text-center py-20">
+              <p style={{ fontFamily: "'Caveat', cursive", fontSize: "22px", color: "#888" }}>
+                Create or join a trip above to begin your scroll ✈️
+              </p>
+            </div>
+          )}
+
+          {activeTrip && activeLocations.length === 0 && (
+            <div className="text-center py-20">
+              <p style={{ fontFamily: "'Caveat', cursive", fontSize: "22px", color: "#888" }}>
+                Your itinerary is empty!
+              </p>
+              <button
+                onClick={() => { setTripModalMode("itinerary-edit"); setShowTripModal(true); }}
+                className="mt-4 px-6 py-2.5 rounded-full border-2 border-warm-orange text-warm-orange font-handwritten text-lg hover:bg-warm-orange hover:text-primary-foreground transition"
+              >
+                🗺️ Plan Your Itinerary
+              </button>
+            </div>
+          )}
+
           {/* Location sections */}
-          {LOCATIONS.map((loc, idx) => {
-            const mem = memories[loc.id] || { note: "", date: loc.defaultDate, visited: false };
+          {activeLocations.map((loc, idx) => {
+            const mem = memories[loc.placeSlug] || { note: "", date: "", visited: false };
             const isLeft = idx % 2 === 0;
-            const locPhotos = photos[loc.id] || [];
+            const locPhotos = photos[loc.placeSlug] || [];
             const isVisible = visibleSections.has(idx);
-            const isUploading = uploadingId === loc.id;
+            const isUploading = uploadingId === loc.placeSlug;
+            const locImage = LOCATION_IMAGES[loc.placeSlug];
 
             return (
               <div
-                key={loc.id}
+                key={loc.placeSlug}
                 ref={(el) => { sectionRefs.current[idx] = el; }}
                 className={`fade-up ${isVisible ? "visible" : ""} relative mb-24 md:mb-32`}
               >
@@ -475,14 +1053,14 @@ export default function Index() {
                       {idx + 1}
                     </span>
                     <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-accent text-accent-foreground">
-                      Day {loc.day}
+                      Stop {idx + 1}
                     </span>
                   </div>
 
                   {/* Illustration */}
                   <div className="relative mb-4 overflow-hidden">
                     <div
-                      className={`illustration-wrapper ${mem.visited ? "visited" : ""} ${shakeId === loc.id ? "shake-animation" : ""} mx-auto md:mx-0`}
+                      className={`illustration-wrapper ${mem.visited ? "visited" : ""} ${shakeId === loc.placeSlug ? "shake-animation" : ""} mx-auto md:mx-0`}
                       style={{
                         transform: `rotate(${isLeft ? -2 : 2}deg)`,
                         maxWidth: 340,
@@ -490,43 +1068,43 @@ export default function Index() {
                         transition: "filter 1.2s ease",
                       }}
                     >
-                      {loc.id === "monsoon-palace" ? (
+                      {loc.placeSlug === "monsoon-palace" ? (
                         <div className="relative w-full">
-                          <img src={monsoonPalaceImg} alt={loc.name} className="w-full h-auto block" style={{ opacity: mem.visited ? 0 : 1, transition: "opacity 0.8s ease" }} />
-                          <img src={monsoonPalaceWindowImg} alt={`${loc.name} - Window View`} className="w-full h-auto absolute top-0 left-0" style={{ opacity: mem.visited ? 1 : 0, transition: "opacity 0.8s ease" }} />
+                          <img src={monsoonPalaceImg} alt={loc.placeName} className="w-full h-auto block" style={{ opacity: mem.visited ? 0 : 1, transition: "opacity 0.8s ease" }} />
+                          <img src={monsoonPalaceWindowImg} alt={`${loc.placeName} - Window View`} className="w-full h-auto absolute top-0 left-0" style={{ opacity: mem.visited ? 1 : 0, transition: "opacity 0.8s ease" }} />
                         </div>
-                      ) : (
-                        <img src={loc.image} alt={loc.name} className="w-full h-auto" />
-                      )}
+                      ) : locImage ? (
+                        <img src={locImage} alt={loc.placeName} className="w-full h-auto" />
+                      ) : null}
                     </div>
-                    <SparkleOverlay active={sparkleId === loc.id} />
-                    {boatSailingId === loc.id && loc.id === "city-palace" && (
+                    <SparkleOverlay active={sparkleId === loc.placeSlug} />
+                    {boatSailingId === loc.placeSlug && loc.placeSlug === "city-palace" && (
                       <img src={boatImg} alt="Boat" className="boat-sailing z-20" />
                     )}
-                    {loc.id === "jagdish-temple" && mem.visited && (
+                    {loc.placeSlug === "jagdish-temple" && mem.visited && (
                       <img src={lotusImg} alt="Lotus" className="lotus-animation" />
                     )}
-                    {loc.id === "saheliyon-ki-bari" && mem.visited && (
+                    {loc.placeSlug === "saheliyon-ki-bari" && mem.visited && (
                       <img src={girlImg} alt="Girl" className="girl-animation" />
                     )}
                   </div>
 
                   {/* Location name */}
-                  <h2 className="font-handwritten text-3xl sm:text-4xl text-foreground mb-3">{loc.name}</h2>
+                  <h2 className="font-handwritten text-3xl sm:text-4xl text-foreground mb-3">{loc.placeName}</h2>
 
                   {/* Mark as Visited */}
                   {!mem.visited ? (
                     <button
-                      id={`mark-visited-${loc.id}`}
-                      onClick={() => markVisited(loc.id)}
+                      id={`mark-visited-${loc.placeSlug}`}
+                      onClick={() => markVisited(loc.placeSlug)}
                       className="px-5 py-2 rounded-full border-2 border-warm-orange text-warm-orange font-handwritten text-lg hover:bg-warm-orange hover:text-primary-foreground transition-colors duration-300 mb-4"
                     >
                       📍 Mark as Visited
                     </button>
                   ) : (
                     <button
-                      id={`unmark-visited-${loc.id}`}
-                      onClick={() => setMemories((prev) => ({ ...prev, [loc.id]: { ...prev[loc.id], visited: false } }))}
+                      id={`unmark-visited-${loc.placeSlug}`}
+                      onClick={() => setMemories((prev) => ({ ...prev, [loc.placeSlug]: { ...prev[loc.placeSlug], visited: false } }))}
                       className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-secondary text-secondary-foreground font-handwritten text-lg mb-4 hover:bg-destructive hover:text-destructive-foreground transition-colors duration-300 cursor-pointer"
                     >
                       ✓ Visited
@@ -538,31 +1116,36 @@ export default function Index() {
                     {/* Photo upload */}
                     <div>
                       <label
-                        id={`photo-upload-label-${loc.id}`}
-                        className={`flex flex-col items-center justify-center gap-2 py-6 px-4 border-2 border-dashed border-border rounded-xl bg-white transition-colors duration-200 ${isUploading ? "opacity-60 cursor-wait border-warm-orange" : "cursor-pointer hover:border-[#e8804a]"}`}
+                        id={`photo-upload-label-${loc.placeSlug}`}
+                        className={`flex flex-col items-center justify-center gap-2 py-6 px-4 border-2 border-dashed border-border rounded-xl bg-white transition-colors duration-200 ${
+                          !activeTrip
+                            ? "opacity-40 cursor-not-allowed"
+                            : isUploading
+                            ? "opacity-60 cursor-wait border-warm-orange"
+                            : "cursor-pointer hover:border-[#e8804a]"
+                        }`}
                       >
                         <span className="text-3xl">{isUploading ? "⏳" : "📷"}</span>
                         <span style={{ fontFamily: "'Caveat', cursive", fontSize: "18px", color: "#888" }}>
-                          {isUploading ? "Uploading..." : "Drop your memories here"}
+                          {isUploading
+                            ? "Uploading..."
+                            : !activeTrip
+                            ? "Join a trip to upload photos"
+                            : "Drop your memories here"}
                         </span>
                         <input
                           type="file"
-                          id={`photo-input-${loc.id}`}
+                          id={`photo-input-${loc.placeSlug}`}
                           accept="image/*"
                           multiple
-                          disabled={isUploading}
-                          onChange={(e) => handlePhotoUpload(loc.id, e.target.files)}
+                          disabled={isUploading || !activeTrip}
+                          onChange={(e) => handlePhotoUpload(loc.placeSlug, e.target.files)}
                           className="hidden"
                         />
                       </label>
-                      {!user && (
-                        <p style={{ fontFamily: "'Caveat', cursive", fontSize: "13px", color: "#aaa" }} className="text-center mt-1">
-                          Sign in to save photos permanently ☁️
-                        </p>
-                      )}
                       {locPhotos.length > 0 && (
                         <div className="mt-4">
-                          <PhotoStack photos={locPhotos} locationName={loc.name} />
+                          <PhotoStack photos={locPhotos} locationName={loc.placeName} />
                         </div>
                       )}
                     </div>
@@ -573,9 +1156,9 @@ export default function Index() {
                         ✏️ What happened here...
                       </label>
                       <textarea
-                        id={`note-${loc.id}`}
+                        id={`note-${loc.placeSlug}`}
                         value={mem.note}
-                        onChange={(e) => updateNote(loc.id, e.target.value)}
+                        onChange={(e) => updateNote(loc.placeSlug, e.target.value)}
                         placeholder="What do you remember about this place..."
                         className="diary-textarea w-full min-h-[112px] rounded-lg px-4 py-3 resize-y focus:outline-none"
                         style={{
@@ -599,9 +1182,9 @@ export default function Index() {
                         <span className="text-sm">📅</span>
                         <input
                           type="date"
-                          id={`date-${loc.id}`}
+                          id={`date-${loc.placeSlug}`}
                           value={mem.date}
-                          onChange={(e) => updateDate(loc.id, e.target.value)}
+                          onChange={(e) => updateDate(loc.placeSlug, e.target.value)}
                           className="bg-transparent focus:outline-none"
                           style={{
                             fontFamily: "'Caveat', cursive",
@@ -621,22 +1204,24 @@ export default function Index() {
           })}
 
           {/* Trip Completed Section */}
-          <div className={`text-center mt-16 transition-opacity duration-700 ${allVisited ? "opacity-100" : "opacity-30"}`}>
-            <h2 className="font-handwritten text-4xl sm:text-5xl text-foreground mb-4">
-              Journey Complete ✨
-            </h2>
-            {allVisited && Object.values(photos).flat().length > 0 && (
-              <div className="flex flex-wrap justify-center gap-4 mb-8 max-w-lg mx-auto">
-                <PhotoStack photos={Object.values(photos).flat()} locationName="Udaipur Memories" />
-              </div>
-            )}
-            <p className="font-serif italic text-lg text-muted-foreground max-w-md mx-auto">
-              "Udaipur — a journey of lakes, palaces, and memories."
-            </p>
-            <p className="text-sm text-muted-foreground mt-4">
-              {visitedCount}/{LOCATIONS.length} locations visited
-            </p>
-          </div>
+          {activeLocations.length > 0 && (
+            <div className={`text-center mt-16 transition-opacity duration-700 ${allVisited ? "opacity-100" : "opacity-30"}`}>
+              <h2 className="font-handwritten text-4xl sm:text-5xl text-foreground mb-4">
+                Journey Complete ✨
+              </h2>
+              {allVisited && Object.values(photos).flat().length > 0 && (
+                <div className="flex flex-wrap justify-center gap-4 mb-8 max-w-lg mx-auto">
+                  <PhotoStack photos={Object.values(photos).flat()} locationName="Udaipur Memories" />
+                </div>
+              )}
+              <p className="font-serif italic text-lg text-muted-foreground max-w-md mx-auto">
+                "Udaipur — a journey of lakes, palaces, and memories."
+              </p>
+              <p className="text-sm text-muted-foreground mt-4">
+                {visitedCount}/{activeLocations.length} locations visited
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

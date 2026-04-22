@@ -27,7 +27,6 @@ async function request<T>(
   const headers: Record<string, string> = {
     ...(options.headers as Record<string, string>),
   };
-  // Only add JSON content-type when we are NOT sending FormData
   if (!(options.body instanceof FormData)) {
     headers['Content-Type'] = 'application/json';
   }
@@ -48,7 +47,6 @@ async function request<T>(
     throw new ApiError(res.status, message);
   }
 
-  // 204 No Content — nothing to parse
   if (res.status === 204) return undefined as unknown as T;
   return res.json() as Promise<T>;
 }
@@ -59,6 +57,8 @@ export interface ApiUser {
   name: string;
   email: string;
   avatar: string;
+  cloudinaryName: string;
+  cloudinaryPreset: string;
 }
 
 export interface AuthResponse {
@@ -76,13 +76,24 @@ export interface ApiPhoto {
   uploadedAt: string;
 }
 
-export interface GroupedPhotos {
+export interface IItineraryItem {
   placeSlug: string;
-  photos: ApiPhoto[];
+  placeName: string;
+  order: number;
+  plannedDate?: string;
+}
+
+export interface ApiTrip {
+  _id: string;
+  name: string;
+  adminId: string;
+  members: string[];
+  inviteCode: string;
+  itinerary: IItineraryItem[];
+  createdAt: string;
 }
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
-/** Exchange a Google credential JWT for our own backend JWT + user profile */
 export async function loginWithGoogle(credential: string): Promise<AuthResponse> {
   return request<AuthResponse>('/api/auth/google', {
     method: 'POST',
@@ -90,43 +101,91 @@ export async function loginWithGoogle(credential: string): Promise<AuthResponse>
   });
 }
 
-/** Verify current stored JWT and return the user profile */
 export async function fetchMe(): Promise<ApiUser> {
   return request<ApiUser>('/api/auth/me');
 }
 
+export async function updateMe(cloudinaryName: string, cloudinaryPreset: string): Promise<ApiUser> {
+  return request<ApiUser>('/api/auth/me', {
+    method: 'PATCH',
+    body: JSON.stringify({ cloudinaryName, cloudinaryPreset }),
+  });
+}
+
+// ── Trips ─────────────────────────────────────────────────────────────────────
+export async function createTrip(name: string, itinerary: IItineraryItem[]): Promise<ApiTrip> {
+  return request<ApiTrip>('/api/trips', {
+    method: 'POST',
+    body: JSON.stringify({ name, itinerary }),
+  });
+}
+
+export async function joinTrip(inviteCode: string): Promise<ApiTrip> {
+  return request<ApiTrip>('/api/trips/join', {
+    method: 'POST',
+    body: JSON.stringify({ inviteCode }),
+  });
+}
+
+export async function fetchMyTrips(): Promise<ApiTrip[]> {
+  return request<ApiTrip[]>('/api/trips');
+}
+
+export async function updateItinerary(tripId: string, itinerary: IItineraryItem[]): Promise<ApiTrip> {
+  return request<ApiTrip>(`/api/trips/${tripId}/itinerary`, {
+    method: 'PUT',
+    body: JSON.stringify({ itinerary }),
+  });
+}
+
 // ── Photos ────────────────────────────────────────────────────────────────────
-/** Fetch all photos for a specific place slug */
-export async function fetchPhotosByPlace(placeSlug: string): Promise<ApiPhoto[]> {
-  return request<ApiPhoto[]>(`/api/photos?placeSlug=${encodeURIComponent(placeSlug)}`);
+/** Fetch ALL photos for a trip, grouped by placeSlug */
+export async function fetchAllPhotosGrouped(tripId: string): Promise<Record<string, string[]>> {
+  return request<Record<string, string[]>>(`/api/photos/all?tripId=${encodeURIComponent(tripId)}`);
 }
 
-/** Fetch ALL photos grouped by place slug into a lookup map */
-export async function fetchAllPhotosGrouped(): Promise<Record<string, string[]>> {
-  // Backend returns: Array<{ placeSlug, photoCount }> for the summary,
-  // so we individually fetch per-place to get full URLs.
-  // We fetch per location using parallel requests for the initial load.
-  return request<Record<string, string[]>>('/api/photos/all');
-}
-
-/** Upload a single photo for a location.  Returns the saved Photo document. */
-export async function uploadPhoto(
+/**
+ * Step 1: Upload the file directly to the user's own Cloudinary account (browser→Cloudinary).
+ * Returns the secure URL of the uploaded image.
+ */
+export async function uploadToCloudinary(
   file: File,
-  placeSlug: string,
-  placeName: string,
-): Promise<ApiPhoto> {
-  if (!file) throw new ApiError(400, 'No file selected');
-  if (file.size > 5 * 1024 * 1024) {
-    throw new ApiError(413, 'Photo must be smaller than 5 MB');
-  }
-
+  cloudName: string,
+  uploadPreset: string,
+): Promise<string> {
   const form = new FormData();
   form.append('file', file);
-  form.append('placeSlug', placeSlug);
-  form.append('placeName', placeName);
+  form.append('upload_preset', uploadPreset);
 
-  return request<ApiPhoto>('/api/photos', {
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
     method: 'POST',
     body: form,
+  });
+
+  if (!res.ok) {
+    let message = 'Cloudinary upload failed';
+    try {
+      const body = await res.json();
+      message = body.error?.message ?? message;
+    } catch { /* ignore */ }
+    throw new ApiError(res.status, message);
+  }
+
+  const data = await res.json();
+  return data.secure_url as string;
+}
+
+/**
+ * Step 2: Tell our backend about the uploaded photo (URL only — no file sent).
+ */
+export async function uploadPhoto(
+  cloudinaryUrl: string,
+  placeSlug: string,
+  placeName: string,
+  tripId: string,
+): Promise<ApiPhoto> {
+  return request<ApiPhoto>('/api/photos', {
+    method: 'POST',
+    body: JSON.stringify({ cloudinaryUrl, placeSlug, placeName, tripId }),
   });
 }

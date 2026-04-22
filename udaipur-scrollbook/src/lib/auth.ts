@@ -10,6 +10,8 @@ export interface StoredUser {
   name: string;
   email: string;
   avatar: string;
+  cloudinaryName: string;
+  cloudinaryPreset: string;
 }
 
 // ── Write ────────────────────────────────────────────────────────────────────
@@ -19,6 +21,14 @@ export function saveAuth(token: string, user: StoredUser): void {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   } catch {
     // Private-browsing / storage-quota errors — ignore silently
+  }
+}
+
+export function saveUser(user: StoredUser): void {
+  try {
+    localStorage.setItem(USER_KEY, JSON.stringify(user));
+  } catch {
+    // ignore
   }
 }
 

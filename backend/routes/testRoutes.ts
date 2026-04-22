@@ -13,12 +13,10 @@
  */
 
 import { Router, Request, Response } from 'express';
-import { v2 as cloudinary } from 'cloudinary';
 import mongoose from 'mongoose';
 import User from '../models/User';
-import Photo from '../models/Photo';
 import { generateToken } from '../utils/jwt';
-import { uploadImage } from '../services/cloudinaryService';
+
 
 const router = Router();
 
@@ -91,70 +89,14 @@ router.post('/auth', async (_req: Request, res: Response): Promise<void> => {
 });
 
 // ── POST /api/test/cloudinary ─────────────────────────────────────────────────
-// Accepts { imageUrl, placeSlug } in the JSON body.
-// Fetches the image from imageUrl, uploads it to Cloudinary under the
-// "scrollbook/test" folder, and saves a Photo document to MongoDB using a
-// pre-seeded test user — no auth header required.
-//
-// Body: { imageUrl: string, placeSlug?: string, placeName?: string }
-router.post('/cloudinary', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { imageUrl, placeSlug = 'city-palace', placeName = 'City Palace' } = req.body;
-
-    if (!imageUrl || typeof imageUrl !== 'string') {
-      res.status(400).json({ error: 'imageUrl (string) is required in the request body.' });
-      return;
-    }
-
-    // -- Fetch image from URL --------------------------------------------------
-    console.log('[test-cloudinary] Fetching image from:', imageUrl);
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      res.status(400).json({ error: `Could not fetch imageUrl. Status: ${imageResponse.status}` });
-      return;
-    }
-    const arrayBuffer = await imageResponse.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    console.log('[test-cloudinary] Image fetched, size:', buffer.byteLength, 'bytes');
-
-    // -- Upload to Cloudinary --------------------------------------------------
-    console.log('[test-cloudinary] Uploading to Cloudinary, folder: scrollbook/', placeSlug);
-    const cloudinaryUrl = await uploadImage(buffer, placeSlug);
-    console.log('[test-cloudinary] Cloudinary URL:', cloudinaryUrl);
-
-    // -- Find or create the test user for DB record ----------------------------
-    const TEST_GOOGLE_ID = 'test-user-scrollbook-dev-001';
-    let user = await User.findOne({ googleId: TEST_GOOGLE_ID });
-    if (!user) {
-      user = await User.create({
-        googleId: TEST_GOOGLE_ID,
-        email: 'testuser@scrollbook.dev',
-        name: 'Test Traveler',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=scrollbook',
-      });
-    }
-
-    // -- Save Photo to MongoDB -------------------------------------------------
-    const photo = await Photo.create({
-      cloudinaryUrl,
-      placeSlug,
-      placeName,
-      uploaderName: user.name,
-      uploaderAvatar: user.avatar,
-      uploaderId: user._id,
-    });
-    console.log('[test-cloudinary] Photo saved to DB, id:', photo._id.toString());
-
-    res.status(201).json({
-      success: true,
-      cloudinaryUrl,
-      photoId: photo._id,
-      placeSlug,
-    });
-  } catch (error) {
-    console.error('[test-cloudinary] Error:', error);
-    res.status(500).json({ error: error instanceof Error ? error.message : 'Cloudinary test upload failed' });
-  }
+// This route is DEPRECATED. Server-side Cloudinary uploads have been removed.
+// Photos are now uploaded directly from the browser to the user's own Cloudinary account.
+router.post('/cloudinary', (_req: Request, res: Response) => {
+  res.status(410).json({
+    error: 'Deprecated. Photo uploads now go browser → Cloudinary directly. Use the upload preset flow.',
+  });
 });
 
+
 export default router;
+

@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPhoto extends Document {
+  tripId: mongoose.Types.ObjectId;
   cloudinaryUrl: string;
   driveUrl: string | null;
   driveFileId: string | null;
@@ -14,6 +15,7 @@ export interface IPhoto extends Document {
 }
 
 const photoSchema = new Schema<IPhoto>({
+  tripId: { type: Schema.Types.ObjectId, ref: 'Trip', required: true, index: true },
   cloudinaryUrl: { type: String, required: true },
   driveUrl: { type: String, default: null },
   driveFileId: { type: String, default: null },

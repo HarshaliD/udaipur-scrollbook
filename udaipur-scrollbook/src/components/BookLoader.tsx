@@ -11,19 +11,19 @@ export default function BookLoader({ onComplete }: BookLoaderProps) {
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
 
-    // Stage 1: Closed book visible for 0.5s
-    timers.push(setTimeout(() => setStage("opening"), 500));
-    // Stage 2: Book opens over 2s
-    timers.push(setTimeout(() => setStage("writing"), 2500));
-    // Stage 3: Text writing 1s
-    timers.push(setTimeout(() => setStage("blooming"), 3500));
-    // Stage 4: Flower bloom 0.6s
-    timers.push(setTimeout(() => setStage("exit"), 4100));
-    // Stage 5: Fade out 0.6s
+    // Stage 1: Closed book visible for 0.2s
+    timers.push(setTimeout(() => setStage("opening"), 200));
+    // Stage 2: Book opens over 0.8s
+    timers.push(setTimeout(() => setStage("writing"), 1000));
+    // Stage 3: Text writing 0.5s
+    timers.push(setTimeout(() => setStage("blooming"), 1500));
+    // Stage 4: Flower bloom 0.4s
+    timers.push(setTimeout(() => setStage("exit"), 1900));
+    // Stage 5: Fade out 0.4s
     timers.push(setTimeout(() => {
       setStage("done");
       onComplete();
-    }, 4700));
+    }, 2300));
 
     return () => timers.forEach(clearTimeout);
   }, [onComplete]);
