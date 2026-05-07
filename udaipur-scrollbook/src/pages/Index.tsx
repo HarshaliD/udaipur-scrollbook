@@ -28,8 +28,11 @@ import {
   createTrip as apiCreateTrip,
   joinTrip as apiJoinTrip,
   updateItinerary as apiUpdateItinerary,
+  deleteTrip as apiDeleteTrip,
+  testCloudinaryCredentials,
   ApiError,
   ApiTrip,
+  ApiPhoto,
   IItineraryItem,
 } from "@/lib/api";
 import {
@@ -151,7 +154,7 @@ export default function Index() {
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [memories, setMemories] = useState<Record<string, MemoryData>>(loadMemories);
-  const [photos, setPhotos] = useState<Record<string, string[]>>({});
+  const [photos, setPhotos] = useState<Record<string, ApiPhoto[]>>({});
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [sparkleId, setSparkleId] = useState<string | null>(null);
   const [shakeId, setShakeId] = useState<string | null>(null);
@@ -205,9 +208,26 @@ export default function Index() {
     fetchMyTrips()
       .then((myTrips) => {
         setTrips(myTrips);
-        const savedTripId = localStorage.getItem("activeTrip");
+        let savedTripId = null;
+        try {
+          savedTripId = localStorage.getItem("activeTrip");
+        } catch { /* ignore */ }
         const restored = myTrips.find((t) => t._id === savedTripId) ?? myTrips[0] ?? null;
         setActiveTrip(restored);
+
+        // Check for pending join code
+        const pendingCode = localStorage.getItem("pendingJoinCode");
+        if (pendingCode) {
+          localStorage.removeItem("pendingJoinCode");
+          setTripInput(pendingCode);
+          setTripModalMode("join");
+          setShowTripModal(true);
+          // Wait a tick for modal to open, then attempt join
+          setTimeout(() => {
+            const btn = document.getElementById("join-submit-btn");
+            if (btn) btn.click();
+          }, 100);
+        }
       })
       .catch(() => { /* non-fatal */ });
   }, [user]);
@@ -227,11 +247,20 @@ export default function Index() {
   useEffect(() => {
     const init = () => {
       if (!window.google) return;
-      window.google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        callback: handleGoogleCredential,
-        auto_select: false,
-      });
+      try {
+        window.google.accounts.id.initialize({
+          client_id: GOOGLE_CLIENT_ID,
+          callback: handleGoogleCredential,
+          auto_select: false,
+        });
+      } catch (err) {
+        console.error("Failed to initialize Google Sign-In:", err);
+        toast({ 
+          title: "Sign-in unavailable", 
+          description: "Google Sign-In could not be initialized. Please refresh the page.", 
+          variant: "destructive" 
+        });
+      }
     };
     if (window.google) {
       init();
@@ -317,6 +346,7 @@ export default function Index() {
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Login failed. Please try again.";
       toast({ title: "Login failed", description: msg, variant: "destructive" });
+      console.error("Google login error:", err);
     } finally {
       setAuthLoading(false);
     }
@@ -340,6 +370,10 @@ export default function Index() {
     if (!cloudName.trim() || !cloudPreset.trim()) return;
     setCloudSaving(true);
     try {
+      // Test credentials before saving
+      await testCloudinaryCredentials(cloudName.trim(), cloudPreset.trim());
+
+      // If test passed, save to backend
       const updatedUser = await apiUpdateMe(cloudName.trim(), cloudPreset.trim());
       const stored: StoredUser = {
         id: updatedUser.id,
@@ -366,7 +400,7 @@ export default function Index() {
       }, 1500);
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : "Failed to save credentials.";
-      toast({ title: "Error", description: msg, variant: "destructive" });
+      toast({ title: "Error", description: "Could not connect to your Cloudinary. Please check your credentials. " + msg, variant: "destructive" });
     } finally {
       setCloudSaving(false);
     }
@@ -395,10 +429,19 @@ export default function Index() {
   }
 
   async function handleJoinTrip() {
-    if (!tripInput.trim()) return;
+    let inputCode = tripInput.trim();
+    if (!inputCode) return;
+    
+    // Extract code if user pasted a full link
+    if (inputCode.includes("/join/")) {
+      const parts = inputCode.split("/join/");
+      inputCode = parts[parts.length - 1].split("/")[0].split("?")[0];
+      setTripInput(inputCode);
+    }
+
     setTripLoading(true);
     try {
-      const trip = await apiJoinTrip(tripInput.trim());
+      const trip = await apiJoinTrip(inputCode);
       toast({ title: `Joined "${trip.name}"! 🎉`, description: "Welcome to the group." });
       setTrips((prev) => {
         const exists = prev.find((t) => t._id === trip._id);
@@ -430,6 +473,39 @@ export default function Index() {
     } finally {
       setTripLoading(false);
     }
+  }
+
+  async function handleDeleteTrip() {
+    if (!activeTrip) return;
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${activeTrip.name}"? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setTripLoading(true);
+    try {
+      await apiDeleteTrip(activeTrip._id);
+      toast({ title: "Trip deleted 🗑️", description: "The trip has been removed." });
+      setTrips((prev) => prev.filter((t) => t._id !== activeTrip._id));
+      setActiveTrip(null);
+      setPhotos({});
+      localStorage.removeItem("activeTrip");
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.message : "Failed to delete trip.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
+    } finally {
+      setTripLoading(false);
+    }
+  }
+
+  function handleCopyInviteLink() {
+    if (!activeTrip) return;
+    const fullUrl = `${window.location.origin}/join/${activeTrip.inviteCode}`;
+    navigator.clipboard.writeText(fullUrl).then(() => {
+      toast({ title: "Copied! 📋", description: "Share this link to invite friends." });
+    }).catch(() => {
+      toast({ title: "Could not copy", description: "Please try again.", variant: "destructive" });
+    });
   }
 
   // ── Visited / memory handlers ─────────────────────────────────────────────
@@ -639,6 +715,14 @@ export default function Index() {
                     Code: {activeTrip.inviteCode}
                   </span>
                   <button
+                    id="copy-invite-link-btn"
+                    onClick={handleCopyInviteLink}
+                    className="text-xs px-3 py-1 rounded-full border border-warm-orange text-warm-orange hover:bg-warm-orange hover:text-white transition-colors font-handwritten"
+                    title="Copy invite link to clipboard"
+                  >
+                    📋 Copy Link
+                  </button>
+                  <button
                     id="edit-itinerary-btn"
                     onClick={() => { setTripModalMode("itinerary-edit"); setShowTripModal(true); }}
                     className="text-xs px-3 py-1 rounded-full border border-muted-foreground text-muted-foreground hover:border-warm-orange hover:text-warm-orange transition-colors font-handwritten"
@@ -667,6 +751,15 @@ export default function Index() {
                   >
                     + New Trip
                   </button>
+                  <button
+                    id="delete-trip-btn"
+                    onClick={handleDeleteTrip}
+                    disabled={tripLoading}
+                    className="text-xs px-3 py-1 rounded-full border border-destructive text-destructive hover:bg-destructive hover:text-white transition-colors font-handwritten disabled:opacity-50"
+                    title="Delete this trip"
+                  >
+                    🗑️ Delete
+                  </button>
                 </div>
               )}
             </div>
@@ -694,6 +787,7 @@ export default function Index() {
                       type="text"
                       value={tripInput}
                       onChange={(e) => setTripInput(e.target.value)}
+                      maxLength={100}
                       onKeyDown={(e) => {
                         if (e.key === "Enter" && tripInput.trim()) {
                           setPendingTripName(tripInput.trim());
@@ -1146,6 +1240,13 @@ export default function Index() {
                       {locPhotos.length > 0 && (
                         <div className="mt-4">
                           <PhotoStack photos={locPhotos} locationName={loc.placeName} />
+                        </div>
+                      )}
+                      {locPhotos.length === 0 && activeTrip && (
+                        <div className="mt-4 py-6 px-4 text-center bg-muted/30 rounded-lg border border-border/50">
+                          <p style={{ fontFamily: "'Caveat', cursive", fontSize: "16px", color: "#aaa" }}>
+                            No photos yet — be the first to capture a memory! 📸
+                          </p>
                         </div>
                       )}
                     </div>

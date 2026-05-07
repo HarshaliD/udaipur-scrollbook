@@ -138,10 +138,16 @@ export async function updateItinerary(tripId: string, itinerary: IItineraryItem[
   });
 }
 
+export async function deleteTrip(tripId: string): Promise<{ message: string }> {
+  return request<{ message: string }>(`/api/trips/${tripId}`, {
+    method: 'DELETE',
+  });
+}
+
 // ── Photos ────────────────────────────────────────────────────────────────────
 /** Fetch ALL photos for a trip, grouped by placeSlug */
-export async function fetchAllPhotosGrouped(tripId: string): Promise<Record<string, string[]>> {
-  return request<Record<string, string[]>>(`/api/photos/all?tripId=${encodeURIComponent(tripId)}`);
+export async function fetchAllPhotosGrouped(tripId: string): Promise<Record<string, ApiPhoto[]>> {
+  return request<Record<string, ApiPhoto[]>>(`/api/photos/all?tripId=${encodeURIComponent(tripId)}`);
 }
 
 /**
@@ -152,10 +158,12 @@ export async function uploadToCloudinary(
   file: File,
   cloudName: string,
   uploadPreset: string,
+  folderPath: string,
 ): Promise<string> {
   const form = new FormData();
   form.append('file', file);
   form.append('upload_preset', uploadPreset);
+  form.append('folder', folderPath);
 
   const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
     method: 'POST',
@@ -173,6 +181,37 @@ export async function uploadToCloudinary(
 
   const data = await res.json();
   return data.secure_url as string;
+}
+
+/**
+ * Test Cloudinary credentials by attempting a tiny test upload.
+ * Throws ApiError if credentials are invalid.
+ */
+export async function testCloudinaryCredentials(
+  cloudName: string,
+  uploadPreset: string,
+): Promise<void> {
+  // Create a minimal 1x1 transparent PNG
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d');
+  if (ctx) ctx.clearRect(0, 0, 1, 1);
+
+  const blob = await new Promise<Blob | null>((resolve) => {
+    canvas.toBlob((b) => resolve(b), 'image/png');
+  });
+
+  if (!blob) throw new ApiError(500, 'Could not create test image');
+
+  const file = new File([blob], 'test.png', { type: 'image/png' });
+
+  // Attempt upload
+  try {
+    await uploadToCloudinary(file, cloudName, uploadPreset, 'scrollbook_test');
+  } catch (err) {
+    throw err;
+  }
 }
 
 /**

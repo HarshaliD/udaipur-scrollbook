@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import mongoose from 'mongoose';
 import Photo from '../models/Photo';
 import Trip from '../models/Trip';
 import User from '../models/User';
@@ -10,8 +11,8 @@ async function resolveTripMember(
   userId: string,
   res: Response
 ): Promise<InstanceType<typeof Trip> | null> {
-  if (!tripId) {
-    res.status(400).json({ error: 'tripId is required.' });
+  if (!tripId || !mongoose.Types.ObjectId.isValid(tripId)) {
+    res.status(400).json({ error: 'Valid tripId is required.' });
     return null;
   }
   const trip = await Trip.findById(tripId);
@@ -63,12 +64,12 @@ export const getAllPhotosGrouped = async (req: AuthRequest, res: Response): Prom
     const trip = await resolveTripMember(tripId, userId, res);
     if (!trip) return;
 
-    const photos = await Photo.find({ tripId }, 'placeSlug cloudinaryUrl uploadedAt').sort({ uploadedAt: -1 });
+    const photos = await Photo.find({ tripId }).sort({ uploadedAt: -1 });
 
-    const grouped: Record<string, string[]> = {};
+    const grouped: Record<string, any[]> = {};
     for (const p of photos) {
       if (!grouped[p.placeSlug]) grouped[p.placeSlug] = [];
-      grouped[p.placeSlug].push(p.cloudinaryUrl);
+      grouped[p.placeSlug].push(p);
     }
 
     res.status(200).json(grouped);
@@ -85,8 +86,8 @@ export const uploadPhoto = async (req: AuthRequest, res: Response): Promise<void
   try {
     const { cloudinaryUrl, placeSlug, placeName, tripId } = req.body;
 
-    if (!cloudinaryUrl || typeof cloudinaryUrl !== 'string') {
-      res.status(400).json({ error: 'cloudinaryUrl is required.' });
+    if (!cloudinaryUrl || typeof cloudinaryUrl !== 'string' || (!cloudinaryUrl.startsWith('http://') && !cloudinaryUrl.startsWith('https://'))) {
+      res.status(400).json({ error: 'cloudinaryUrl is required and must be a valid HTTP(S) URL.' });
       return;
     }
     if (!placeSlug || !placeName || !tripId) {

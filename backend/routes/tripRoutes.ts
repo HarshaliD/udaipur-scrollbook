@@ -6,6 +6,7 @@ import {
   getMyTrips,
   getTripById,
   updateItinerary,
+  deleteTrip,
 } from '../controllers/tripController';
 
 const router = Router();
@@ -18,5 +19,6 @@ router.post('/join', joinTrip);            // Join via invite code
 router.get('/', getMyTrips);              // Get all my trips
 router.get('/:id', getTripById);           // Get single trip (members only)
 router.put('/:id/itinerary', updateItinerary); // Update itinerary (members only)
+router.delete('/:id', deleteTrip);         // Delete trip (members only)
 
 export default router;

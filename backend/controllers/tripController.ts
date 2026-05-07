@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import Trip from '../models/Trip';
 import { AuthRequest } from '../middlewares/authMiddleware';
 
@@ -10,6 +11,14 @@ export const createTrip = async (req: AuthRequest, res: Response): Promise<void>
     const { name, itinerary } = req.body;
     if (!name || typeof name !== 'string' || name.trim() === '') {
       res.status(400).json({ error: 'Trip name is required.' });
+      return;
+    }
+    if (name.length > 100) {
+      res.status(400).json({ error: 'Trip name is too long (max 100 chars).' });
+      return;
+    }
+    if (Array.isArray(itinerary) && itinerary.length > 50) {
+      res.status(400).json({ error: 'Itinerary cannot exceed 50 items.' });
       return;
     }
 
@@ -45,8 +54,8 @@ export const createTrip = async (req: AuthRequest, res: Response): Promise<void>
 export const joinTrip = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { inviteCode } = req.body;
-    if (!inviteCode) {
-      res.status(400).json({ error: 'inviteCode is required.' });
+    if (!inviteCode || typeof inviteCode !== 'string') {
+      res.status(400).json({ error: 'inviteCode is required and must be a string.' });
       return;
     }
 
@@ -89,6 +98,10 @@ export const getMyTrips = async (req: AuthRequest, res: Response): Promise<void>
 // Returns a single trip — only if requester is a member.
 export const getTripById = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(400).json({ error: 'Invalid trip ID.' });
+      return;
+    }
     const userId = req.user!.id;
     const trip = await Trip.findById(req.params.id);
 
@@ -114,6 +127,10 @@ export const getTripById = async (req: AuthRequest, res: Response): Promise<void
 // Replace the trip's itinerary. Any member can update it.
 export const updateItinerary = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(400).json({ error: 'Invalid trip ID.' });
+      return;
+    }
     const userId = req.user!.id;
     const trip = await Trip.findById(req.params.id);
 
@@ -133,6 +150,10 @@ export const updateItinerary = async (req: AuthRequest, res: Response): Promise<
       res.status(400).json({ error: 'itinerary must be an array.' });
       return;
     }
+    if (itinerary.length > 50) {
+      res.status(400).json({ error: 'Itinerary cannot exceed 50 items.' });
+      return;
+    }
 
     trip.itinerary = itinerary;
     await trip.save();
@@ -141,5 +162,35 @@ export const updateItinerary = async (req: AuthRequest, res: Response): Promise<
   } catch (err) {
     console.error('[updateItinerary]', err);
     res.status(500).json({ error: 'Failed to update itinerary.' });
+  }
+};
+
+// ── DELETE /api/trips/:id ──────────────────────────────────────────────────────
+// Delete a trip. Only the admin or any member can delete it.
+export const deleteTrip = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(400).json({ error: 'Invalid trip ID.' });
+      return;
+    }
+    const userId = req.user!.id;
+    const trip = await Trip.findById(req.params.id);
+
+    if (!trip) {
+      res.status(404).json({ error: 'Trip not found.' });
+      return;
+    }
+
+    const isMember = trip.members.some((m) => m.toString() === userId);
+    if (!isMember) {
+      res.status(403).json({ error: 'Access denied. You are not a member of this trip.' });
+      return;
+    }
+
+    await Trip.deleteOne({ _id: req.params.id });
+    res.status(200).json({ message: 'Trip deleted successfully.' });
+  } catch (err) {
+    console.error('[deleteTrip]', err);
+    res.status(500).json({ error: 'Failed to delete trip.' });
   }
 };
